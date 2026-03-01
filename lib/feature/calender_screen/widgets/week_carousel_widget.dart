@@ -247,6 +247,7 @@ class _WeekCarouselWidgetState extends ConsumerState<WeekCarouselWidget> {
     required Color textColor,
     required Color selectedTextColor,
   }) {
+    final theme = Theme.of(context);
     final isSaturday = dayName == 'SAT';
     final isSunday = dayName == 'SUN';
 
@@ -257,30 +258,45 @@ class _WeekCarouselWidgetState extends ConsumerState<WeekCarouselWidget> {
       dayTextColor = Theme.of(context).colorScheme.error;
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       width: 44,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: isSelected ? selectedColor : unselectedColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: isToday && !isSelected
-            ? Border.all(color: selectedColor, width: 1.5)
+            ? Border.all(
+                color: selectedColor.withValues(alpha: 0.5),
+                width: 1.5,
+              )
             : null,
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: selectedColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             dayName,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: isSelected ? selectedTextColor : dayTextColor,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isSelected
+                  ? selectedTextColor
+                  : dayTextColor.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             '$dayNumber',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: isSelected ? selectedTextColor : textColor,
             ),
