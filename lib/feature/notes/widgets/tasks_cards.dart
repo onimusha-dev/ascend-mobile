@@ -73,12 +73,6 @@ class _TasksCardState extends ConsumerState<TasksCard>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // 1. Color Logic
-    // Background color: themed surface for all, gray when completed
-    final cardColor = widget.isCompleted
-        ? colorScheme.surfaceContainerLow
-        : colorScheme.surfaceContainer;
-
     // Left Border Color based on Priority
     final priorityColor = widget.isCompleted
         ? colorScheme.outlineVariant
@@ -103,21 +97,20 @@ class _TasksCardState extends ConsumerState<TasksCard>
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(16),
-            // User requested: "priority add a left border for it"
-            border: Border(left: BorderSide(color: priorityColor, width: 6)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(4),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+            color: widget.isCompleted
+                ? colorScheme.surfaceContainerHighest.withAlpha(40)
+                : colorScheme.surfaceContainerHighest.withAlpha(80),
+            borderRadius: BorderRadius.circular(24),
+            border: Border(
+              left: BorderSide(
+                color: priorityColor.withAlpha(widget.isCompleted ? 100 : 255),
+                width: 6,
               ),
-            ],
+            ),
           ),
-          clipBehavior: Clip.antiAlias, // Ensures border doesn't bleed out
+          clipBehavior: Clip.antiAlias,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -209,8 +202,9 @@ class _TasksCardState extends ConsumerState<TasksCard>
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 10,
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
+                                              color: colorScheme
+                                                  .onSurfaceVariant
+                                                  .withAlpha(150),
                                             ),
                                       ),
                                     ],

@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fuck_your_todos/core/theme/theme_provider.dart';
 import 'package:fuck_your_todos/feature/calender_screen/provider/calendar_date_provider.dart';
 import 'package:fuck_your_todos/feature/calender_screen/calender_screen.dart';
-import 'package:fuck_your_todos/feature/error_screen/test.dart';
-import 'package:fuck_your_todos/feature/home_screen/home_screen.dart';
-import 'package:fuck_your_todos/feature/notes/widgets/create_note_view.dart';
+import 'package:fuck_your_todos/feature/notes/widgets/create_note/create_note_view.dart';
 import 'package:fuck_your_todos/feature/profile_screen/analytics_screen.dart';
 import 'package:fuck_your_todos/feature/settings_screen/settings_screen.dart';
 
@@ -23,23 +21,20 @@ class MainAppScreen extends ConsumerStatefulWidget {
 class _MainAppScreenState extends ConsumerState<MainAppScreen> {
   DateTime? currentBackPressTime;
   late int currentIndex;
-  final List<Widget> pages = [
-    const HomeScreen(),
-    const CalendarScreen(),
-    const TestScreen(),
-    const AnalyticsScreen(),
-  ];
+  final List<Widget> pages = [const CalendarScreen(), const AnalyticsScreen()];
 
   @override
   void initState() {
     super.initState();
-    currentIndex = widget.initialIndex;
+    currentIndex = widget.initialIndex % 2; // Ensure valid index
   }
 
   void _switchTab(int index) => setState(() => currentIndex = index);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final doubleTapToExit = ref.watch(doubleTapToExitProvider);
 
     return PopScope(
@@ -72,31 +67,43 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
       child: Scaffold(
         extendBody: true,
         resizeToAvoidBottomInset: false,
-        appBar: currentIndex == 1
-            ? null
-            : PreferredSize(
-                preferredSize: const Size(double.infinity, 56),
-                child: AppBar(
-                  title: Text(
-                    currentIndex == 0
-                        ? 'My Tasks'
-                        : (currentIndex == 2 ? 'Focus' : 'Analytics'),
+        appBar: AppBar(
+          title: Text(
+            currentIndex == 0 ? 'Index' : 'Analytics',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.settings_outlined),
-                    ),
-                  ],
+                );
+              },
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withAlpha(100),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.settings_rounded,
+                  color: cs.primary,
+                  size: 20,
                 ),
               ),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
         body: pages[currentIndex],
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Container(
@@ -104,10 +111,7 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
           width: 60,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.tertiary,
-              ],
+              colors: [cs.primary, cs.tertiary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -117,7 +121,7 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                final initialDate = currentIndex == 1
+                final initialDate = currentIndex == 0
                     ? ref.read(selectedCalendarDateProvider)
                     : null;
                 showModalBottomSheet(
@@ -137,50 +141,41 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
               customBorder: const CircleBorder(),
               child: const Icon(
                 Icons.add_rounded,
-                size: 28,
+                size: 32,
                 color: Colors.white,
               ),
             ),
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          height: 64,
           padding: EdgeInsets.zero,
-          notchMargin: 4,
-          color: Theme.of(context).colorScheme.surface,
+          notchMargin: 8,
+          color: cs.surface,
           elevation: 0,
           shape: const CircularNotchedRectangle(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildTabItem(
-                  index: 0,
-                  icon: CupertinoIcons.house,
-                  activeIcon: CupertinoIcons.house_fill,
-                  label: 'Home',
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                height: 60, // Content height
+                child: Row(
+                  children: [
+                    _buildTabItem(
+                      index: 0,
+                      icon: CupertinoIcons.calendar,
+                      activeIcon: CupertinoIcons.calendar_today,
+                      label: 'Index',
+                    ),
+                    const SizedBox(width: 80), // Space for FAB
+                    _buildTabItem(
+                      index: 1,
+                      icon: CupertinoIcons.chart_bar,
+                      activeIcon: CupertinoIcons.chart_bar_fill,
+                      label: 'Analytics',
+                    ),
+                  ],
                 ),
-                _buildTabItem(
-                  index: 1,
-                  icon: CupertinoIcons.calendar,
-                  activeIcon: CupertinoIcons.calendar_today,
-                  label: 'Calendar',
-                ),
-                const SizedBox(width: 48), // Space for FAB
-                _buildTabItem(
-                  index: 2,
-                  icon: CupertinoIcons.timer,
-                  activeIcon: CupertinoIcons.timer_fill,
-                  label: 'Focus',
-                ),
-                _buildTabItem(
-                  index: 3,
-                  icon: CupertinoIcons.chart_bar,
-                  activeIcon: CupertinoIcons.chart_bar_fill,
-                  label: 'Analytics',
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -198,7 +193,7 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
     final isSelected = currentIndex == index;
     final color = isSelected
         ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
+        : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150);
 
     return Expanded(
       child: InkWell(
@@ -210,14 +205,26 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isSelected ? activeIcon : icon, size: 24, color: color),
-            const SizedBox(height: 2),
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 200),
+              tween: Tween(begin: 0.8, end: isSelected ? 1.1 : 1.0),
+              builder: (context, value, child) => Transform.scale(
+                scale: value,
+                child: Icon(
+                  isSelected ? activeIcon : icon,
+                  size: 26,
+                  color: color,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                fontSize: 11,
+                letterSpacing: 0.2,
               ),
             ),
           ],

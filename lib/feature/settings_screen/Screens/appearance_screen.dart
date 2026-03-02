@@ -12,32 +12,41 @@ class AppearanceScreen extends ConsumerWidget {
     final themeState = ref.watch(themeProvider);
     final themeMode = themeState.themeMode;
     final currentPreset = themeState.preset;
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance')),
+      appBar: AppBar(
+        title: Text(
+          'Appearance',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: cs.primary,
+            size: 20,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'COLOR SCHEMES',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
+              _buildSectionTitle(context, "Color Schemes"),
               const SizedBox(height: 16),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.none,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: AppThemes.presets.map((preset) {
                     final isSelected = currentPreset.name == preset.name;
@@ -53,11 +62,155 @@ class AppearanceScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              _ThemeModeSelector(themeMode: themeMode, colorScheme: cs),
-              const _PureDarkToggle(),
-              const _LanguageSelector(),
-              const _DoubleTapExitToggle(),
+              _buildSectionTitle(context, "Theme Settings"),
+              const SizedBox(height: 12),
+              _AppearanceSettingTile(
+                title: 'Theme Mode',
+                subtitle: _themeModeLabel(themeMode),
+                icon: Icons.brightness_6_rounded,
+                color: Colors.amber,
+                trailing: _ThemeModeDropdown(themeMode: themeMode, cs: cs),
+              ),
+              const SizedBox(height: 12),
+              _AppearanceSettingTile(
+                title: 'Pure Dark',
+                subtitle: 'Deep black for AMOLED screens',
+                icon: Icons.dark_mode_rounded,
+                color: Colors.indigo,
+                trailing: Switch(
+                  value: themeState.pureDark,
+                  activeThumbColor: cs.primary,
+                  onChanged: themeMode == ThemeMode.light
+                      ? null
+                      : (_) =>
+                            ref.read(themeProvider.notifier).togglePureDark(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _AppearanceSettingTile(
+                title: 'Language',
+                subtitle: 'System default',
+                icon: Icons.translate_rounded,
+                color: Colors.teal,
+                onTap: () =>
+                    AppSettings.openAppSettings(type: AppSettingsType.settings),
+              ),
+              const SizedBox(height: 12),
+              _AppearanceSettingTile(
+                title: 'Double Tap to Exit',
+                subtitle: 'Safety back press',
+                icon: Icons.exit_to_app_rounded,
+                color: Colors.redAccent,
+                trailing: Switch(
+                  value: ref.watch(doubleTapToExitProvider),
+                  activeThumbColor: cs.primary,
+                  onChanged: (_) =>
+                      ref.read(doubleTapToExitProvider.notifier).toggle(),
+                ),
+              ),
               const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.outline,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'System';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.light:
+        return 'Light';
+    }
+  }
+}
+
+class _AppearanceSettingTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _AppearanceSettingTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return Material(
+      color: cs.surfaceContainerHighest.withAlpha(80),
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(25),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant.withAlpha(150),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ?trailing,
+              if (onTap != null && trailing == null)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: cs.onSurfaceVariant.withAlpha(100),
+                ),
             ],
           ),
         ),
@@ -66,7 +219,86 @@ class AppearanceScreen extends ConsumerWidget {
   }
 }
 
-/// NOTE: this widget is used to preview the color schemes
+class _ThemeModeDropdown extends ConsumerWidget {
+  final ThemeMode themeMode;
+  final ColorScheme cs;
+
+  const _ThemeModeDropdown({required this.themeMode, required this.cs});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<ThemeMode>(
+      initialValue: themeMode,
+      onSelected: (mode) => ref.read(themeProvider.notifier).setThemeMode(mode),
+      offset: const Offset(0, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: cs.surface,
+      itemBuilder: (context) => [
+        _buildItem(context, ThemeMode.system, 'System'),
+        _buildItem(context, ThemeMode.light, 'Light'),
+        _buildItem(context, ThemeMode.dark, 'Dark'),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: cs.primary.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _label(themeMode),
+              style: TextStyle(
+                color: cs.primary,
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
+            Icon(Icons.arrow_drop_down_rounded, color: cs.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _label(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'System';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.light:
+        return 'Light';
+    }
+  }
+
+  PopupMenuItem<ThemeMode> _buildItem(
+    BuildContext context,
+    ThemeMode value,
+    String label,
+  ) {
+    final isSelected = themeMode == value;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+              color: isSelected ? cs.primary : cs.onSurface,
+            ),
+          ),
+          const Spacer(),
+          if (isSelected)
+            Icon(Icons.check_circle_rounded, size: 16, color: cs.primary),
+        ],
+      ),
+    );
+  }
+}
+
 class _ThemePreviewCard extends ConsumerWidget {
   final AppThemePreset preset;
   final bool isSelected;
@@ -80,7 +312,6 @@ class _ThemePreviewCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Generate preview scheme
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final previewCs = ColorScheme.fromSeed(
       seedColor: preset.seedColor,
@@ -93,36 +324,47 @@ class _ThemePreviewCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () {
-            ref.read(themeProvider.notifier).setPreset(preset);
-          },
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          child: Container(
-            height: 160,
-            width: 130,
+          onTap: () => ref.read(themeProvider.notifier).setPreset(preset),
+          borderRadius: BorderRadius.circular(24),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: 180,
+            width: 140,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isSelected
                     ? previewCs.primary
-                    : previewCs.outlineVariant,
-                width: isSelected ? 1 : 0.5,
+                    : previewCs.outlineVariant.withAlpha(100),
+                width: isSelected ? 3 : 1,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: previewCs.primary.withAlpha(40),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : [],
             ),
-            child: _PreviewContent(previewCs: previewCs, preset: preset),
+            child: _PreviewContent(previewCs: previewCs),
           ),
         ),
-
-        const SizedBox(height: 10),
-
-        Text(
-          preset.name,
-          style: TextStyle(
-            fontSize: 16,
-            color: Theme.of(context).colorScheme.onSurface,
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            preset.name,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+              color: isSelected
+                  ? previewCs.primary
+                  : Theme.of(context).colorScheme.onSurface,
+              fontSize: 14,
+            ),
           ),
         ),
       ],
@@ -132,30 +374,27 @@ class _ThemePreviewCard extends ConsumerWidget {
 
 class _PreviewContent extends StatelessWidget {
   final ColorScheme previewCs;
-  final AppThemePreset preset;
-
-  const _PreviewContent({required this.previewCs, required this.preset});
+  const _PreviewContent({required this.previewCs});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Fake App Bar / Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              height: 10,
-              width: 40,
+              height: 12,
+              width: 45,
               decoration: BoxDecoration(
                 color: previewCs.primary,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
             Container(
-              height: 10,
-              width: 10,
+              height: 12,
+              width: 12,
               decoration: BoxDecoration(
                 color: previewCs.secondaryContainer,
                 shape: BoxShape.circle,
@@ -163,34 +402,24 @@ class _PreviewContent extends StatelessWidget {
             ),
           ],
         ),
-
-        const SizedBox(height: 16),
-        _buildFakeTask(previewCs, 0.8),
-        const SizedBox(height: 8),
-        _buildFakeTask(previewCs, 0.5),
-        const SizedBox(height: 8),
-        _buildFakeTask(previewCs, 0.7, isCompleted: true),
-
+        const SizedBox(height: 20),
+        _fakeTask(previewCs, 0.8),
+        const SizedBox(height: 10),
+        _fakeTask(previewCs, 0.5),
+        const SizedBox(height: 10),
+        _fakeTask(previewCs, 0.7, done: true),
         const Spacer(),
         Align(
           alignment: Alignment.bottomRight,
           child: Container(
-            height: 24,
-            width: 24,
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: previewCs.primaryContainer,
               borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: previewCs.shadow.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Icon(
               Icons.add_rounded,
-              size: 16,
+              size: 14,
               color: previewCs.onPrimaryContainer,
             ),
           ),
@@ -199,25 +428,19 @@ class _PreviewContent extends StatelessWidget {
     );
   }
 
-  Widget _buildFakeTask(
-    ColorScheme cs,
-    double widthFactor, {
-    bool isCompleted = false,
-  }) {
+  Widget _fakeTask(ColorScheme cs, double width, {bool done = false}) {
     return Row(
       children: [
         Container(
-          height: 18,
-          width: 18,
+          height: 16,
+          width: 16,
           decoration: BoxDecoration(
             color: cs.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Icon(
-            Icons.check_rounded,
-            size: 12,
-            color: isCompleted ? cs.primary : cs.outlineVariant,
-          ),
+          child: done
+              ? Icon(Icons.check_rounded, size: 10, color: cs.primary)
+              : null,
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -225,22 +448,22 @@ class _PreviewContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               FractionallySizedBox(
-                widthFactor: widthFactor,
+                widthFactor: width,
                 child: Container(
-                  height: 4,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: isCompleted ? cs.outline : cs.onSurface,
+                    color: done ? cs.outline : cs.onSurface,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 3),
               FractionallySizedBox(
-                widthFactor: 0.3,
+                widthFactor: 0.4,
                 child: Container(
                   height: 3,
                   decoration: BoxDecoration(
-                    color: cs.outlineVariant,
+                    color: cs.outlineVariant.withAlpha(100),
                     borderRadius: BorderRadius.circular(1.5),
                   ),
                 ),
@@ -252,203 +475,3 @@ class _PreviewContent extends StatelessWidget {
     );
   }
 }
-
-/// NOTE: this widget is used to select the theme mode
-/// modes: system, light, dark
-class _ThemeModeSelector extends ConsumerWidget {
-  final ThemeMode themeMode;
-  final ColorScheme colorScheme;
-
-  const _ThemeModeSelector({
-    required this.themeMode,
-    required this.colorScheme,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(
-        'Theme Mode',
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(
-        _themeModeLabel(themeMode),
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: PopupMenuButton<ThemeMode>(
-        initialValue: themeMode,
-        onSelected: (mode) {
-          ref.read(themeProvider.notifier).setThemeMode(mode);
-        },
-        offset: const Offset(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        color: colorScheme.surfaceContainerHighest,
-        itemBuilder: (context) => [
-          _buildThemeItem(context, ThemeMode.system, 'System', themeMode),
-          _buildThemeItem(context, ThemeMode.light, 'Light', themeMode),
-          _buildThemeItem(context, ThemeMode.dark, 'Dark', themeMode),
-        ],
-        child: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            Icons.arrow_drop_down_rounded,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Converts enum -> label
-  String _themeModeLabel(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return 'System';
-      case ThemeMode.dark:
-        return 'Dark';
-      case ThemeMode.light:
-        return 'Light';
-    }
-  }
-
-  PopupMenuItem<ThemeMode> _buildThemeItem(
-    BuildContext context,
-    ThemeMode value,
-    String label,
-    ThemeMode currentMode,
-  ) {
-    final cs = Theme.of(context).colorScheme;
-    final isSelected = currentMode == value;
-
-    return PopupMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: cs.onSurface,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-              ),
-            ),
-          ),
-          if (isSelected)
-            Icon(Icons.check_rounded, size: 16, color: cs.primary),
-        ],
-      ),
-    );
-  }
-}
-
-/// NOTE: this widget is used to toggle pure dark mode
-/// pure dark mode uses less power on AMOLED screens
-class _PureDarkToggle extends ConsumerWidget {
-  const _PureDarkToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pureDark = ref.watch(themeProvider).pureDark;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Opacity(
-      opacity: isDark ? 1.0 : 0.5,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        title: Text(
-          'Pure Dark',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          'Uses less power on AMOLED screens',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        trailing: Switch(
-          value: pureDark,
-          onChanged: isDark
-              ? (value) {
-                  ref.read(themeProvider.notifier).togglePureDark();
-                }
-              : null,
-        ),
-      ),
-    );
-  }
-}
-
-/// NOTE: this widget is used to select the language
-class _LanguageSelector extends StatelessWidget {
-  const _LanguageSelector();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(
-        'Language',
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(
-        'Change system language for app',
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: const Icon(Icons.language_rounded),
-      onTap: () {
-        AppSettings.openAppSettings(type: AppSettingsType.settings);
-      },
-    );
-  }
-}
-
-/// NOTE: this widget is used to toggle double tap to exit
-/// double tap to exit is a feature that allows the user to
-/// exit the app by double tapping on the home screen
-class _DoubleTapExitToggle extends ConsumerWidget {
-  const _DoubleTapExitToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final doubleTap = ref.watch(doubleTapToExitProvider);
-
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(
-        'Double Tap to Exit',
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(
-        'Press twice on home screen to exit',
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: Switch(
-        value: doubleTap,
-        onChanged: (value) {
-          ref.read(doubleTapToExitProvider.notifier).toggle();
-        },
-      ),
-    );
-  }
-}
-

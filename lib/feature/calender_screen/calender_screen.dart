@@ -14,8 +14,7 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _selectedDate = DateTime.now();
-  final bool _showCompleted =
-      true; // Show by default as per "just show the tasks"
+  final bool _showCompleted = true;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -34,10 +33,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final noteState = ref.watch(noteViewModelProvider);
     final allTasks = noteState.notes;
 
-    // Filter tasks for the selected date
     final tasksForDate = allTasks.where((note) {
       final dateToMatch = (note.dueDate ?? note.createdAt).toLocal();
       return dateToMatch.year == _selectedDate.year &&
@@ -48,7 +48,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final remainingTasks = tasksForDate.where((t) => !t.isCompleted).toList();
     final completedTasks = tasksForDate.where((t) => t.isCompleted).toList();
 
-    // Sort tasks by time
     remainingTasks.sort(
       (a, b) => (a.dueDate ?? a.createdAt).compareTo(b.dueDate ?? b.createdAt),
     );
@@ -74,117 +73,137 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 400),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.05, 0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              );
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
             },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView.builder(
-                controller: _scrollController,
-                key: ValueKey(_selectedDate),
-                padding: const EdgeInsets.only(bottom: 120, top: 24),
-                itemCount: listItems.length,
-                itemBuilder: (context, index) {
-                  final item = listItems[index];
+            child: listItems.isEmpty
+                ? _buildEmptyState(context)
+                : ListView.builder(
+                    controller: _scrollController,
+                    key: ValueKey(_selectedDate),
+                    padding: const EdgeInsets.only(
+                      bottom: 120,
+                      top: 16,
+                      left: 16,
+                      right: 16,
+                    ),
+                    itemCount: listItems.length,
+                    itemBuilder: (context, index) {
+                      final item = listItems[index];
 
-                  if (item == "COMPLETED_HEADER") {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 32, bottom: 20),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withAlpha(120),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle_rounded,
-                                  size: 18,
-                                  color: Theme.of(context).colorScheme.primary,
+                      if (item == "COMPLETED_HEADER") {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  "COMPLETED",
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
-                                        letterSpacing: 1.2,
+                                decoration: BoxDecoration(
+                                  color: cs.primary.withAlpha(20),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: cs.primary.withAlpha(30),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 16,
+                                      color: cs.primary,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      "COMPLETED TASKS",
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w900,
+                                            color: cs.primary,
+                                            letterSpacing: 1.2,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      "•",
+                                      style: TextStyle(
+                                        color: cs.primary.withAlpha(100),
                                       ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      "${completedTasks.length}",
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: cs.primary,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary.withAlpha(40),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    "${completedTasks.length}",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              const Expanded(
+                                child: Divider(indent: 12, endIndent: 4),
+                              ),
+                            ],
                           ),
-                          const Expanded(
-                            child: Divider(indent: 16, thickness: 0.5),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                        );
+                      }
 
-                  final task = item;
-                  return TasksCard(
-                    id: task.id,
-                    title: task.title,
-                    description: task.description ?? '',
-                    dueTime: task.dueDate ?? task.createdAt,
-                    priority: task.priority,
-                    tags: const [],
-                    isCompleted: task.isCompleted,
-                    taskType: task.taskType,
-                  );
-                },
-              ),
-            ),
+                      return TasksCard(
+                        id: item.id,
+                        title: item.title,
+                        description: item.description ?? '',
+                        dueTime: item.dueDate ?? item.createdAt,
+                        priority: item.priority,
+                        tags: const [],
+                        isCompleted: item.isCompleted,
+                        taskType: item.taskType,
+                      );
+                    },
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: cs.primary.withAlpha(15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.event_available_rounded,
+              size: 64,
+              color: cs.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Clear for today!",
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          Text(
+            "Enjoy your free time or add a new task",
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: cs.outline),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -13,147 +13,96 @@ class _AccountScreenState extends State<AccountScreen> {
   void _showComingSoonToast() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Premium features coming soon!',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-        duration: const Duration(seconds: 3),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        content: const Text('Premium features coming soon!'),
+        behavior: SnackBarBehavior.floating,
+        showCloseIcon: true,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(
+        title: Text(
+          'Account',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: cs.primary,
+            size: 20,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _UserProfileCard(),
+              _UserProfileCard(cs: cs, theme: theme),
               const SizedBox(height: 32),
-              const _SectionHeader(title: 'Cloud Synchronization'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Online Sync',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Automatically backup and sync your notes across devices',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
+              _buildSectionTitle(context, "Cloud Synchronization"),
+              const SizedBox(height: 12),
+              _AccountSettingTile(
+                title: 'Online Sync',
+                subtitle: 'Backup and sync across devices',
+                icon: Icons.sync_rounded,
+                color: Colors.blue,
                 trailing: Switch(
                   value: _onlineSync,
-                  onChanged: (value) {
-                    setState(() {
-                      _onlineSync = value;
-                    });
-                  },
+                  activeThumbColor: cs.primary,
+                  onChanged: (v) => setState(() => _onlineSync = v),
                 ),
               ),
-              const SizedBox(height: 24),
-              const _SectionHeader(title: 'Data Management'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Get all remotely stored data',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Request a complete export of your cloud footprint',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.cloud_download_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                onTap: () {
-                  // TODO: Implement data export
-                },
+
+              const SizedBox(height: 32),
+              _buildSectionTitle(context, "Data Management"),
+              const SizedBox(height: 12),
+              _AccountSettingTile(
+                title: 'Export Cloud Data',
+                subtitle: 'Download your remote footprint',
+                icon: Icons.cloud_download_rounded,
+                color: Colors.teal,
+                onTap: () {},
               ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Clear all remotely stored data',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Wipe your existing footprint from the cloud servers',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.cloud_off_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                onTap: () {
-                  // TODO: Implement cloud data wipe
-                },
+              const SizedBox(height: 12),
+              _AccountSettingTile(
+                title: 'Wipe Cloud Cache',
+                subtitle: 'Clear remote storage only',
+                icon: Icons.cloud_off_rounded,
+                color: Colors.orange,
+                onTap: () {},
               ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Delete account',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-                subtitle: Text(
-                  'Permanently erase your account and all associated data',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.error.withValues(alpha: 0.8),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.delete_forever_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                onTap: () {
-                  // TODO: Implement account deletion
-                },
+              const SizedBox(height: 12),
+              _AccountSettingTile(
+                title: 'Delete Account',
+                subtitle: 'Permanently erase everything',
+                icon: Icons.delete_forever_rounded,
+                color: cs.error,
+                onTap: () {},
               ),
-              const SizedBox(height: 24),
-              const _SectionHeader(title: 'Plans & Upgrades'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Get Premium',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                subtitle: Text(
-                  'Unlock unlimited themes, robust backups, and priority support',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+
+              const SizedBox(height: 32),
+              _buildSectionTitle(context, "Plans & Upgrades"),
+              const SizedBox(height: 12),
+              _AccountSettingTile(
+                title: 'Get Premium',
+                subtitle: 'Unlock themes, backups & more',
+                icon: Icons.workspace_premium_rounded,
+                color: Colors.purple,
                 onTap: _showComingSoonToast,
               ),
               const SizedBox(height: 100),
@@ -163,22 +112,16 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
     );
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 4),
       child: Text(
         title.toUpperCase(),
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-          letterSpacing: 1.2,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.outline,
+          letterSpacing: 1.5,
         ),
       ),
     );
@@ -186,51 +129,136 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _UserProfileCard extends StatelessWidget {
-  const _UserProfileCard();
+  final ColorScheme cs;
+  final ThemeData theme;
+  const _UserProfileCard({required this.cs, required this.theme});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cs.primary.withAlpha(40), cs.primary.withAlpha(10)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 36,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.person_rounded,
-                size: 36,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: cs.primary.withAlpha(30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: cs.primary, width: 2),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Demo Account',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'demo@example.com',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            child: CircleAvatar(
+              radius: 32,
+              backgroundColor: cs.surface,
+              child: Icon(Icons.person_rounded, size: 36, color: cs.primary),
             ),
-          ],
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Demo User',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Text(
+                  'demo@example.com',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountSettingTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _AccountSettingTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return Material(
+      color: cs.surfaceContainerHighest.withAlpha(80),
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(25),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant.withAlpha(150),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ?trailing,
+              if (onTap != null && trailing == null)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: cs.onSurfaceVariant.withAlpha(100),
+                ),
+            ],
+          ),
         ),
       ),
     );

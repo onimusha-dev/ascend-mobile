@@ -24,16 +24,14 @@ class NoteChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.only(
-          left: 14,
-          right: onClear != null ? 6 : 14,
-          top: 10,
-          bottom: 10,
+        padding: EdgeInsets.symmetric(
+          horizontal: onClear != null ? 12 : 16,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
           color: color.withAlpha(20),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withAlpha(60), width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withAlpha(50), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

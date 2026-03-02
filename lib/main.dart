@@ -14,20 +14,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferences.init();
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.manual,
-    overlays: [SystemUiOverlay.top],
-  );
-
-  SystemChrome.setSystemUIChangeCallback((bool visible) async {
-    if (visible) {
-      await Future.delayed(const Duration(milliseconds: 2500));
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top],
-      );
-    }
-  });
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   // Catch Flutter UI errors and substitute the broken widget tree with our error screen
   ErrorWidget.builder = (FlutterErrorDetails details) {

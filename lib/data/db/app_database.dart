@@ -52,6 +52,13 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
+  Future<void> clearAllData() async {
+    await transaction(() async {
+      await delete(noteTable).go();
+      await delete(taskCategoriesTable).go();
+    });
+  }
+
   static QueryExecutor _openConnection() {
     return driftDatabase(
       name: DatabaseConstants.name,

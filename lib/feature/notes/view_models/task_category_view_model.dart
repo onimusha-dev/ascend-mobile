@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fuck_your_todos/data/db/app_database.dart';
+import 'package:fuck_your_todos/core/constants/default_categories.dart';
 
 final taskCategoryViewModelProvider =
     NotifierProvider<
@@ -18,7 +19,17 @@ class TaskCategoryViewModel
   Future<void> _loadCategories() async {
     try {
       final db = ref.read(appDatabaseProviderProvider);
-      final categories = await db.taskCategoryDao.getAllCategories();
+      var categories = await db.taskCategoryDao.getAllCategories();
+
+      if (categories.isEmpty) {
+        for (final cat in defaultCategories) {
+          await db.taskCategoryDao.insertCategory(
+            TaskCategoriesTableCompanion.insert(name: cat.name, icon: cat.icon),
+          );
+        }
+        categories = await db.taskCategoryDao.getAllCategories();
+      }
+
       state = AsyncValue.data(categories);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

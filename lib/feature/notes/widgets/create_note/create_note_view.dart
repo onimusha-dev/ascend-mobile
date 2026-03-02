@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 
 import 'note_chip.dart';
 import 'note_text_field.dart';
-import 'add_category_dialog.dart';
+import 'category_picker_sheet.dart';
 
 class CreateNoteView extends ConsumerStatefulWidget {
   final NoteModel? noteToEdit;
@@ -28,7 +28,6 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
   List<int> _selectedCategoryIds = [];
 
   final _priorityMenuKey = GlobalKey<PopupMenuButtonState<Priority>>();
-  final _categoryMenuKey = GlobalKey<PopupMenuButtonState<int>>();
 
   bool get _isEditMode => widget.noteToEdit != null;
 
@@ -50,7 +49,6 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
     _selectedDateTime = note?.dueDate ?? widget.initialDate;
     _selectedPriority = note?.priority ?? Priority.none;
 
-    // Parse categories from comma-separated string
     if (note?.taskType != null && note!.taskType!.isNotEmpty) {
       _selectedCategoryIds = note.taskType!
           .split(',')
@@ -69,8 +67,6 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
     _descriptionController.dispose();
     super.dispose();
   }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   Color _priorityColor(Priority p, ColorScheme cs) {
     return switch (p) {
@@ -175,10 +171,19 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
     if (mounted) Navigator.pop(context);
   }
 
-  void _showAddCategory() {
-    showDialog(
+  void _showCategoryPicker() {
+    showModalBottomSheet(
       context: context,
-      builder: (_) => const AddCategoryInlineDialog(),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CategoryPickerBottomSheet(
+        selectedIds: _selectedCategoryIds,
+        onSelect: (id) {
+          if (!_selectedCategoryIds.contains(id)) {
+            setState(() => _selectedCategoryIds.add(id));
+          }
+        },
+      ),
     );
   }
 
@@ -190,287 +195,215 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
+        left: 24,
+        right: 24,
         top: 12,
         bottom: keyboardHeight > 0 ? keyboardHeight + 16 : bottomPadding + 32,
       ),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Drag handle ──
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: cs.outlineVariant.withAlpha(100),
-                borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant.withAlpha(100),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-
-          // ── Header ──
-          Row(
-            children: [
-              Text(
-                _isEditMode ? 'Edit Task' : 'New Task',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: cs.onSurface,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const Spacer(),
-              if (_isEditMode)
-                Text(
-                  "UNFINISHED",
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: cs.primary.withAlpha(180),
-                    letterSpacing: 1.2,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── Input Fields ──
-          NoteTextField(
-            controller: _titleController,
-            hint: 'E.g. Design app screens…',
-            type: TextFieldType.title,
-          ),
-          const SizedBox(height: 16),
-          NoteTextField(
-            controller: _descriptionController,
-            hint: 'Notes or subtasks…',
-            type: TextFieldType.description,
-            maxLines: 3,
-          ),
-          const SizedBox(height: 24),
-
-          // ── Row 1: Date & Priority ──
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            child: Row(
+            Row(
               children: [
-                NoteChip(
-                  icon: Icons.calendar_month_rounded,
-                  label: _selectedDateTime != null
-                      ? _formatDateTime(_selectedDateTime!)
-                      : 'Set Due Date',
-                  color: _selectedDateTime != null
-                      ? cs.primary
-                      : cs.onSurfaceVariant.withAlpha(150),
-                  onTap: _pickDateTime,
-                  onClear: _selectedDateTime != null
-                      ? () => setState(() => _selectedDateTime = null)
-                      : null,
-                ),
-                const SizedBox(width: 10),
-                PopupMenuButton<Priority>(
-                  key: _priorityMenuKey,
-                  onSelected: (p) => setState(() => _selectedPriority = p),
-                  offset: const Offset(0, -180),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                Text(
+                  _isEditMode ? 'Edit Task' : 'New Task',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSurface,
+                    letterSpacing: -0.5,
                   ),
-                  child: NoteChip(
-                    icon: _priorityIcon(_selectedPriority),
-                    label: _priorityLabel(_selectedPriority),
-                    color: _selectedPriority == Priority.none
-                        ? cs.onSurfaceVariant.withAlpha(150)
-                        : _priorityColor(_selectedPriority, cs),
-                    onTap: () {
-                      if (_selectedPriority != Priority.none) {
-                        setState(() => _selectedPriority = Priority.none);
-                      } else {
-                        _priorityMenuKey.currentState?.showButtonMenu();
-                      }
-                    },
-                  ),
-                  itemBuilder: (_) =>
-                      [Priority.high, Priority.medium, Priority.low]
-                          .map(
-                            (p) => PopupMenuItem(
-                              value: p,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _priorityIcon(p),
-                                    color: _priorityColor(p, cs),
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    _priorityLabel(p),
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                          .toList(),
                 ),
+                const Spacer(),
+                if (_isEditMode)
+                  Text(
+                    "UNFINISHED",
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: cs.primary.withAlpha(180),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-
-          // ── Row 2: Categories (Up to 3) ──
-          Consumer(
-            builder: (context, ref, _) {
-              final categoriesState = ref.watch(taskCategoryViewModelProvider);
-              return categoriesState.maybeWhen(
-                data: (categories) {
-                  final selectedCats = categories
-                      .where((c) => _selectedCategoryIds.contains(c.id))
-                      .toList();
-
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none,
-                    child: Row(
-                      children: [
-                        ...selectedCats.map(
-                          (c) => Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: NoteChip(
-                              icon: Icons.category_rounded,
-                              label: '${c.icon} ${c.name}',
-                              color: cs.primary,
-                              onClear: () => setState(
-                                () => _selectedCategoryIds.remove(c.id),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_selectedCategoryIds.length < 3)
-                          PopupMenuButton<int>(
-                            key: _categoryMenuKey,
-                            onSelected: (id) {
-                              if (id == -1) {
-                                _showAddCategory();
-                              } else if (!_selectedCategoryIds.contains(id)) {
-                                setState(() => _selectedCategoryIds.add(id));
-                              }
-                            },
-                            offset: const Offset(0, -180),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            itemBuilder: (_) => [
-                              ...categories
-                                  .where(
-                                    (c) => !_selectedCategoryIds.contains(c.id),
-                                  )
-                                  .map(
-                                    (c) => PopupMenuItem(
-                                      value: c.id,
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            c.icon,
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            c.name,
-                                            style: theme.textTheme.bodyMedium,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                              if (categories.isNotEmpty)
-                                const PopupMenuDivider(),
-                              PopupMenuItem(
-                                value: -1,
+            const SizedBox(height: 24),
+            NoteTextField(
+              controller: _titleController,
+              hint: 'E.g. Design app screens…',
+              type: TextFieldType.title,
+            ),
+            const SizedBox(height: 16),
+            NoteTextField(
+              controller: _descriptionController,
+              hint: 'Notes or subtasks…',
+              type: TextFieldType.description,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              child: Row(
+                children: [
+                  NoteChip(
+                    icon: Icons.calendar_month_rounded,
+                    label: _selectedDateTime != null
+                        ? _formatDateTime(_selectedDateTime!)
+                        : 'Set Due Date',
+                    color: _selectedDateTime != null
+                        ? cs.primary
+                        : cs.onSurfaceVariant.withAlpha(150),
+                    onTap: _pickDateTime,
+                    onClear: _selectedDateTime != null
+                        ? () => setState(() => _selectedDateTime = null)
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  PopupMenuButton<Priority>(
+                    key: _priorityMenuKey,
+                    onSelected: (p) => setState(() => _selectedPriority = p),
+                    offset: const Offset(0, -180),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: NoteChip(
+                      icon: _priorityIcon(_selectedPriority),
+                      label: _priorityLabel(_selectedPriority),
+                      color: _selectedPriority == Priority.none
+                          ? cs.onSurfaceVariant.withAlpha(150)
+                          : _priorityColor(_selectedPriority, cs),
+                      onTap: () {
+                        if (_selectedPriority != Priority.none) {
+                          setState(() => _selectedPriority = Priority.none);
+                        } else {
+                          _priorityMenuKey.currentState?.showButtonMenu();
+                        }
+                      },
+                    ),
+                    itemBuilder: (_) =>
+                        [Priority.high, Priority.medium, Priority.low]
+                            .map(
+                              (p) => PopupMenuItem(
+                                value: p,
                                 child: Row(
                                   children: [
                                     Icon(
-                                      Icons.add_rounded,
-                                      color: cs.primary,
+                                      _priorityIcon(p),
+                                      color: _priorityColor(p, cs),
                                       size: 20,
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
-                                      "New Category",
+                                      _priorityLabel(p),
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
-                                            color: cs.primary,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                            child: NoteChip(
+                            )
+                            .toList(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Consumer(
+              builder: (context, ref, _) {
+                final categoriesState = ref.watch(
+                  taskCategoryViewModelProvider,
+                );
+                return categoriesState.maybeWhen(
+                  data: (categories) {
+                    final selectedCats = categories
+                        .where((c) => _selectedCategoryIds.contains(c.id))
+                        .toList();
+
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      child: Row(
+                        children: [
+                          ...selectedCats.map(
+                            (c) => Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: NoteChip(
+                                icon: Icons.category_rounded,
+                                label: '${c.icon} ${c.name}',
+                                color: cs.primary,
+                                onClear: () => setState(
+                                  () => _selectedCategoryIds.remove(c.id),
+                                ),
+                                onTap: _showCategoryPicker,
+                              ),
+                            ),
+                          ),
+                          if (_selectedCategoryIds.length < 3)
+                            NoteChip(
                               icon: Icons.add_circle_outline_rounded,
                               label: _selectedCategoryIds.isEmpty
                                   ? 'Category'
                                   : 'Add',
                               color: cs.onSurfaceVariant.withAlpha(150),
-                              onTap: () => _categoryMenuKey.currentState
-                                  ?.showButtonMenu(),
+                              onTap: _showCategoryPicker,
                             ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-                orElse: () => const SizedBox.shrink(),
-              );
-            },
-          ),
-          const SizedBox(height: 32),
-
-          // ── Save Button ──
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _canSave ? _save : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                        ],
+                      ),
+                    );
+                  },
+                  orElse: () => const SizedBox.shrink(),
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _canSave ? _save : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  disabledBackgroundColor: cs.surfaceContainerHighest,
                 ),
-                disabledBackgroundColor: cs.surfaceContainerHighest,
-              ),
-              child: Text(
-                _isEditMode ? 'Update Task' : 'Create Task',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17,
+                child: Text(
+                  _isEditMode ? 'Update Task' : 'Create Task',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
