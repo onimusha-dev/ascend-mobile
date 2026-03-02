@@ -87,9 +87,10 @@ class _AddCategoryInlineDialogState
 
     return Dialog(
       backgroundColor: cs.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -100,145 +101,191 @@ class _AddCategoryInlineDialogState
                 children: [
                   Text(
                     isEditing ? "Edit Category" : "New Category",
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      fontSize: 22,
                     ),
                   ),
                   if (isEditing)
                     IconButton(
                       onPressed: _deleteCategory,
-                      icon: Icon(Icons.delete_outline_rounded, color: cs.error),
-                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        backgroundColor: cs.error.withValues(alpha: 0.1),
+                        foregroundColor: cs.error,
+                      ),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
                     ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () =>
-                        setState(() => _showEmojiPicker = !_showEmojiPicker),
-                    child: Container(
-                      height: 56,
-                      width: 56,
-                      decoration: BoxDecoration(
-                        color: cs.surfaceContainerHighest.withAlpha(120),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: cs.outlineVariant,
-                          width: 1.5,
+              const SizedBox(height: 24),
+
+              // Emoji Circle
+              Center(
+                child: GestureDetector(
+                  onTap: () =>
+                      setState(() => _showEmojiPicker = !_showEmojiPicker),
+                  child: Container(
+                    height: 80,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest.withAlpha(100),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: cs.primary.withAlpha(50),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: cs.primary.withValues(alpha: 0.1),
+                          blurRadius: 20,
                         ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _selectedEmoji,
-                        style: const TextStyle(fontSize: 28),
-                      ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _selectedEmoji,
+                      style: const TextStyle(fontSize: 36),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _nameController,
-                      autofocus: !isEditing,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Category Name',
-                        filled: true,
-                        fillColor: cs.surfaceContainerHighest.withAlpha(80),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: cs.primary, width: 2),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
+
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  "Tap to pick emoji",
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: cs.onSurfaceVariant.withAlpha(150),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+
               if (_showEmojiPicker) ...[
-                const SizedBox(height: 16),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest.withAlpha(40),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  itemCount: _emojiList.length,
-                  itemBuilder: (context, index) {
-                    final emoji = _emojiList[index];
-                    final isSelected = _selectedEmoji == emoji;
-                    return InkWell(
-                      onTap: () => setState(() {
-                        _selectedEmoji = emoji;
-                        _showEmojiPicker = false;
-                      }),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? cs.primary.withAlpha(40)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                        ),
+                    itemCount: _emojiList.length,
+                    itemBuilder: (context, index) {
+                      final emoji = _emojiList[index];
+                      final isSelected = _selectedEmoji == emoji;
+                      return InkWell(
+                        onTap: () => setState(() {
+                          _selectedEmoji = emoji;
+                          _showEmojiPicker = false;
+                        }),
+                        borderRadius: BorderRadius.circular(16),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? cs.primary
-                                : cs.outlineVariant.withAlpha(100),
-                            width: 1.5,
+                                ? cs.primary.withAlpha(40)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? cs.primary
+                                  : Colors.transparent,
+                              width: 1.5,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 22),
                           ),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ],
+
               const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "Cancel",
-                      style: TextStyle(
-                        color: cs.outline,
-                        fontWeight: FontWeight.w600,
-                      ),
+
+              TextField(
+                controller: _nameController,
+                autofocus: !isEditing,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Category Name',
+                  hintStyle: TextStyle(
+                    color: cs.onSurfaceVariant.withAlpha(100),
+                  ),
+                  filled: true,
+                  fillColor: cs.surfaceContainerHighest.withAlpha(80),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(
+                      color: cs.primary.withAlpha(150),
+                      width: 2,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _saveCategory,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
-                      foregroundColor: cs.onPrimary,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      isEditing ? "Update" : "Create",
-                      style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _saveCategory,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cs.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                ],
+                  child: Text(
+                    isEditing ? "UPDATE CATEGORY" : "SAVE CATEGORY",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant.withAlpha(150),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

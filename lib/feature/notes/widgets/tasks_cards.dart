@@ -80,7 +80,7 @@ class _TasksCardState extends ConsumerState<TasksCard>
             Priority.high => colorScheme.error,
             Priority.medium => colorScheme.tertiary,
             Priority.low => colorScheme.primary,
-            Priority.none => colorScheme.outlineVariant, // Gray for none
+            Priority.none => colorScheme.outlineVariant,
           };
 
     final textColor = widget.isCompleted
@@ -88,7 +88,7 @@ class _TasksCardState extends ConsumerState<TasksCard>
         : colorScheme.onSurface;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: GestureDetector(
         onLongPress: () =>
             showTaskOptions(context, ref, widget.id, widget.isCompleted),
@@ -100,17 +100,16 @@ class _TasksCardState extends ConsumerState<TasksCard>
             color: widget.isCompleted
                 ? colorScheme.surfaceContainerHighest.withAlpha(40)
                 : colorScheme.surfaceContainerHighest.withAlpha(80),
-            borderRadius: BorderRadius.circular(24),
-            border: Border(
-              left: BorderSide(
-                color: priorityColor.withAlpha(widget.isCompleted ? 100 : 255),
-                width: 6,
-              ),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: widget.isCompleted
+                  ? Colors.transparent
+                  : priorityColor.withValues(alpha: 0.1),
+              width: 1.5,
             ),
           ),
-          clipBehavior: Clip.antiAlias,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -118,6 +117,23 @@ class _TasksCardState extends ConsumerState<TasksCard>
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (!widget.isCompleted) ...[
+                      Container(
+                        width: 12,
+                        height: 12,
+                        margin: const EdgeInsets.only(top: 6, right: 12),
+                        decoration: BoxDecoration(
+                          color: priorityColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: priorityColor.withAlpha(80),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     Expanded(
                       child: Hero(
                         tag: 'task_title_${widget.id}',
@@ -126,9 +142,10 @@ class _TasksCardState extends ConsumerState<TasksCard>
                           child: Text(
                             widget.title,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: textColor,
-                              fontSize: 17,
+                              fontSize: 18,
+                              letterSpacing: -0.3,
                               decoration: widget.isCompleted
                                   ? TextDecoration.lineThrough
                                   : null,
@@ -141,11 +158,11 @@ class _TasksCardState extends ConsumerState<TasksCard>
                       Icon(
                         Icons.check_circle_rounded,
                         color: colorScheme.primary,
-                        size: 22,
+                        size: 24,
                       ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // Meta Row: Category tag and Time (visible when collapsed or expanded)
                 Row(
@@ -177,16 +194,16 @@ class _TasksCardState extends ConsumerState<TasksCard>
                               .map(
                                 (match) => Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
+                                    horizontal: 10,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
                                     color: colorScheme.surfaceContainerHighest
-                                        .withAlpha(150),
-                                    borderRadius: BorderRadius.circular(6),
+                                        .withAlpha(200),
+                                    borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: colorScheme.outline.withAlpha(50),
-                                      width: 0.5,
+                                      color: colorScheme.outline.withAlpha(30),
+                                      width: 1,
                                     ),
                                   ),
                                   child: Row(
@@ -194,17 +211,17 @@ class _TasksCardState extends ConsumerState<TasksCard>
                                     children: [
                                       Text(
                                         "${match.icon} ",
-                                        style: const TextStyle(fontSize: 10),
+                                        style: const TextStyle(fontSize: 12),
                                       ),
                                       Text(
                                         match.name,
                                         style: theme.textTheme.labelSmall
                                             ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 11,
                                               color: colorScheme
                                                   .onSurfaceVariant
-                                                  .withAlpha(150),
+                                                  .withAlpha(180),
                                             ),
                                       ),
                                     ],

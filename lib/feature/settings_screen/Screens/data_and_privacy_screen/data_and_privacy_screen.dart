@@ -57,32 +57,32 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle(context, "App Security"),
-              const SizedBox(height: 12),
-              _DataSettingTile(
-                title: 'Screenshot Privacy',
-                subtitle: 'Prevent screenshots of the app',
-                icon: Icons.screenshot_rounded,
-                color: Colors.blue,
-                trailing: Switch(
-                  value: true,
-                  activeThumbColor: cs.primary,
-                  onChanged: (v) {},
-                ),
-              ),
-              const SizedBox(height: 12),
-              _DataSettingTile(
-                title: 'Error Reporting',
-                subtitle: 'Help improve the app with logs',
-                icon: Icons.bug_report_rounded,
-                color: Colors.orange,
-                trailing: Switch(
-                  value: false,
-                  activeThumbColor: cs.primary,
-                  onChanged: (v) {},
-                ),
-              ),
-
+              /// NOTE: uncomment on next update
+              // _buildSectionTitle(context, "App Security"),
+              // const SizedBox(height: 12),
+              // _DataSettingTile(
+              //   title: 'Screenshot Privacy',
+              //   subtitle: 'Prevent screenshots of the app',
+              //   icon: Icons.screenshot_rounded,
+              //   color: Colors.blue,
+              //   trailing: Switch(
+              //     value: true,
+              //     activeThumbColor: cs.primary,
+              //     onChanged: (v) {},
+              //   ),
+              // ),
+              // const SizedBox(height: 12),
+              // _DataSettingTile(
+              //   title: 'Error Reporting',
+              //   subtitle: 'Help improve the app with logs',
+              //   icon: Icons.bug_report_rounded,
+              //   color: Colors.orange,
+              //   trailing: Switch(
+              //     value: false,
+              //     activeThumbColor: cs.primary,
+              //     onChanged: (v) {},
+              //   ),
+              // ),
               const SizedBox(height: 32),
               _buildSectionTitle(context, "Backup & Restore"),
               const SizedBox(height: 12),

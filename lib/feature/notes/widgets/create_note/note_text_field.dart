@@ -48,27 +48,28 @@ class NoteTextField extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                  color: cs.onSurfaceVariant.withAlpha(120),
+                  color: cs.onSurfaceVariant.withAlpha(100),
+                  fontWeight: FontWeight.w500,
                 ),
                 filled: true,
                 fillColor: cs.surfaceContainerHighest.withAlpha(80),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
+                  horizontal: 24,
+                  vertical: 20,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   borderSide: BorderSide(
-                    color: isOverLimit ? cs.error : cs.primary,
+                    color: isOverLimit ? cs.error : cs.primary.withAlpha(180),
                     width: 2,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   borderSide: BorderSide(
                     color: isOverLimit
                         ? cs.error.withAlpha(100)

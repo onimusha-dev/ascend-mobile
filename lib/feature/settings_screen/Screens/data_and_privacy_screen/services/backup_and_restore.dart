@@ -37,8 +37,11 @@ class BackupAndRestoreService {
       final mb = totalBytes / (1024 * 1024);
 
       if (totalBytes == 0) return '0 KB';
-      if (mb < 1.0) return '${(totalBytes / 1024).toStringAsFixed(2)} KB';
-      return '${mb.toStringAsFixed(2)} MB';
+      if (mb < 1.0) {
+        final kb = totalBytes / 1024;
+        return '${kb == kb.roundToDouble() ? kb.toInt() : kb.toStringAsFixed(2)} KB';
+      }
+      return '${mb == mb.roundToDouble() ? mb.toInt() : mb.toStringAsFixed(2)} MB';
     } catch (e) {
       return 'Error calc';
     }

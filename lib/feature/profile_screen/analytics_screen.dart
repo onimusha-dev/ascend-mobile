@@ -62,7 +62,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   title: "Total Tasks",
                   value: "$totalTasks",
                   icon: Icons.list_alt_rounded,
-                  color: Colors.blue,
+                  color: cs.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -71,7 +71,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   title: "Completed",
                   value: "$totalCompleted",
                   icon: Icons.check_circle_rounded,
-                  color: Colors.green,
+                  color: cs.tertiary,
                 ),
               ),
             ],
@@ -84,7 +84,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   title: "Pending",
                   value: "$totalPending",
                   icon: Icons.pending_actions_rounded,
-                  color: Colors.orange,
+                  color: cs.secondary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -93,7 +93,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   title: "Success Rate",
                   value: "$completionRate%",
                   icon: Icons.trending_up_rounded,
-                  color: Colors.purple,
+                  color: cs.primary,
                 ),
               ),
             ],
@@ -105,8 +105,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             height: 320,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest.withAlpha(80),
-              borderRadius: BorderRadius.circular(24),
+              color: cs.surfaceContainerHighest.withAlpha(60),
+              borderRadius: BorderRadius.circular(32),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,35 +321,38 @@ class _StatCard extends StatelessWidget {
     final cs = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withAlpha(80),
-        borderRadius: BorderRadius.circular(24),
+        color: cs.surfaceContainerHighest.withAlpha(60),
+        borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withAlpha(25),
+              color: color.withAlpha(20),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             value,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
               color: cs.onSurface,
+              letterSpacing: -0.5,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             title,
             style: theme.textTheme.labelSmall?.copyWith(
               color: cs.onSurfaceVariant.withAlpha(150),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
             ),
           ),
         ],

@@ -21,11 +21,6 @@ class OnboardingConstants {
       icon: Icons.menu_book_rounded,
     ),
     OnboardingPage(
-      title: 'Theme Settings',
-      description: 'Configure how your app looks and feels.',
-      icon: Icons.palette_rounded,
-    ),
-    OnboardingPage(
       title: 'Stay Informed',
       description:
           'Allow notifications to receive timely reminders directly to your device.',

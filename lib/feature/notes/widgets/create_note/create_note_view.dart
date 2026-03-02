@@ -6,7 +6,6 @@ import 'package:fuck_your_todos/feature/notes/view_models/note_view_model.dart';
 import 'package:fuck_your_todos/feature/notes/view_models/task_category_view_model.dart';
 import 'package:intl/intl.dart';
 
-import 'note_chip.dart';
 import 'note_text_field.dart';
 import 'category_picker_sheet.dart';
 
@@ -26,8 +25,6 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
   DateTime? _selectedDateTime;
   Priority _selectedPriority = Priority.none;
   List<int> _selectedCategoryIds = [];
-
-  final _priorityMenuKey = GlobalKey<PopupMenuButtonState<Priority>>();
 
   bool get _isEditMode => widget.noteToEdit != null;
 
@@ -198,213 +195,542 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
       ),
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 12,
-        bottom: keyboardHeight > 0 ? keyboardHeight + 16 : bottomPadding + 32,
-      ),
       decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(40),
+            blurRadius: 40,
+            offset: const Offset(0, -10),
+          ),
+        ],
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: cs.outlineVariant.withAlpha(100),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag Handle & Header
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Column(
               children: [
-                Text(
-                  _isEditMode ? 'Edit Task' : 'New Task',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                    letterSpacing: -0.5,
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.outlineVariant.withAlpha(100),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const Spacer(),
-                if (_isEditMode)
-                  Text(
-                    "UNFINISHED",
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: cs.primary.withAlpha(180),
-                      letterSpacing: 1.2,
-                    ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Text(
+                        _isEditMode ? 'Edit Task' : 'New Task',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: cs.onSurface,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: IconButton.styleFrom(
+                          backgroundColor: cs.surfaceContainerHighest.withAlpha(
+                            100,
+                          ),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: cs.onSurfaceVariant,
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
-            const SizedBox(height: 24),
-            NoteTextField(
-              controller: _titleController,
-              hint: 'E.g. Design app screens…',
-              type: TextFieldType.title,
-            ),
-            const SizedBox(height: 16),
-            NoteTextField(
-              controller: _descriptionController,
-              hint: 'Notes or subtasks…',
-              type: TextFieldType.description,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              child: Row(
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                0,
+                24,
+                keyboardHeight > 0 ? keyboardHeight + 24 : bottomPadding + 32,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  NoteChip(
-                    icon: Icons.calendar_month_rounded,
-                    label: _selectedDateTime != null
-                        ? _formatDateTime(_selectedDateTime!)
-                        : 'Set Due Date',
-                    color: _selectedDateTime != null
-                        ? cs.primary
-                        : cs.onSurfaceVariant.withAlpha(150),
-                    onTap: _pickDateTime,
-                    onClear: _selectedDateTime != null
-                        ? () => setState(() => _selectedDateTime = null)
-                        : null,
+                  const SizedBox(height: 16),
+                  // Title Input
+                  NoteTextField(
+                    controller: _titleController,
+                    hint: 'What needs to be done?',
+                    type: TextFieldType.title,
                   ),
-                  const SizedBox(width: 10),
-                  PopupMenuButton<Priority>(
-                    key: _priorityMenuKey,
-                    onSelected: (p) => setState(() => _selectedPriority = p),
-                    offset: const Offset(0, -180),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 12),
+                  // Description Input
+                  NoteTextField(
+                    controller: _descriptionController,
+                    hint: 'Add more details...',
+                    type: TextFieldType.description,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 32),
+
+                  _buildSectionLabel(context, "Task Details"),
+                  const SizedBox(height: 12),
+
+                  // Settings Container
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest.withAlpha(60),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    child: NoteChip(
-                      icon: _priorityIcon(_selectedPriority),
-                      label: _priorityLabel(_selectedPriority),
-                      color: _selectedPriority == Priority.none
-                          ? cs.onSurfaceVariant.withAlpha(150)
-                          : _priorityColor(_selectedPriority, cs),
-                      onTap: () {
-                        if (_selectedPriority != Priority.none) {
-                          setState(() => _selectedPriority = Priority.none);
-                        } else {
-                          _priorityMenuKey.currentState?.showButtonMenu();
-                        }
-                      },
+                    child: Column(
+                      children: [
+                        _TaskSettingTile(
+                          icon: Icons.calendar_today_rounded,
+                          label: "Due Date",
+                          value: _selectedDateTime != null
+                              ? _formatDateTime(_selectedDateTime!)
+                              : "Set schedule",
+                          color: _selectedDateTime != null
+                              ? cs.primary
+                              : cs.outline,
+                          onTap: _pickDateTime,
+                          onClear: _selectedDateTime != null
+                              ? () => setState(() => _selectedDateTime = null)
+                              : null,
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 64,
+                          endIndent: 16,
+                          color: cs.outlineVariant.withAlpha(50),
+                        ),
+                        _PrioritySettingTile(
+                          priority: _selectedPriority,
+                          onSelect: (p) =>
+                              setState(() => _selectedPriority = p),
+                          cs: cs,
+                          theme: theme,
+                          priorityIcon: _priorityIcon,
+                          priorityLabel: _priorityLabel,
+                          priorityColor: _priorityColor,
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 64,
+                          endIndent: 16,
+                          color: cs.outlineVariant.withAlpha(50),
+                        ),
+                        _CategorySettingTile(
+                          selectedIds: _selectedCategoryIds,
+                          onTap: _showCategoryPicker,
+                          onRemove: (id) =>
+                              setState(() => _selectedCategoryIds.remove(id)),
+                          cs: cs,
+                          theme: theme,
+                        ),
+                      ],
                     ),
-                    itemBuilder: (_) =>
-                        [Priority.high, Priority.medium, Priority.low]
-                            .map(
-                              (p) => PopupMenuItem(
-                                value: p,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _priorityIcon(p),
-                                      color: _priorityColor(p, cs),
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      _priorityLabel(p),
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: _canSave
+                            ? LinearGradient(
+                                colors: [cs.primary, cs.tertiary],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: _canSave ? null : cs.surfaceContainerHighest,
+                        boxShadow: _canSave
+                            ? [
+                                BoxShadow(
+                                  color: cs.primary.withAlpha(80),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
-                              ),
-                            )
-                            .toList(),
+                              ]
+                            : [],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _canSave ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: Text(
+                          _isEditMode ? 'UPDATE TASK' : 'CREATE TASK',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                            fontSize: 14,
+                            color: _canSave
+                                ? Colors.white
+                                : cs.onSurfaceVariant.withAlpha(100),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Consumer(
-              builder: (context, ref, _) {
-                final categoriesState = ref.watch(
-                  taskCategoryViewModelProvider,
-                );
-                return categoriesState.maybeWhen(
-                  data: (categories) {
-                    final selectedCats = categories
-                        .where((c) => _selectedCategoryIds.contains(c.id))
-                        .toList();
+          ),
+        ],
+      ),
+    );
+  }
 
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      child: Row(
-                        children: [
-                          ...selectedCats.map(
-                            (c) => Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: NoteChip(
-                                icon: Icons.category_rounded,
-                                label: '${c.icon} ${c.name}',
-                                color: cs.primary,
-                                onClear: () => setState(
-                                  () => _selectedCategoryIds.remove(c.id),
-                                ),
-                                onTap: _showCategoryPicker,
-                              ),
-                            ),
-                          ),
-                          if (_selectedCategoryIds.length < 3)
-                            NoteChip(
-                              icon: Icons.add_circle_outline_rounded,
-                              label: _selectedCategoryIds.isEmpty
-                                  ? 'Category'
-                                  : 'Add',
-                              color: cs.onSurfaceVariant.withAlpha(150),
-                              onTap: _showCategoryPicker,
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                  orElse: () => const SizedBox.shrink(),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _canSave ? _save : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cs.primary,
-                  foregroundColor: cs.onPrimary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  disabledBackgroundColor: cs.surfaceContainerHighest,
-                ),
-                child: Text(
-                  _isEditMode ? 'Update Task' : 'Create Task',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+  Widget _buildSectionLabel(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.outline,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _TaskSettingTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+
+  const _TaskSettingTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.onTap,
+    this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withAlpha(20),
+                shape: BoxShape.circle,
               ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: cs.onSurfaceVariant.withAlpha(150),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onClear != null)
+              IconButton(
+                onPressed: onClear,
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: cs.onSurfaceVariant.withAlpha(100),
+                  size: 20,
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: cs.onSurfaceVariant.withAlpha(100),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PrioritySettingTile extends StatelessWidget {
+  final Priority priority;
+  final Function(Priority) onSelect;
+  final ColorScheme cs;
+  final ThemeData theme;
+  final IconData Function(Priority) priorityIcon;
+  final String Function(Priority) priorityLabel;
+  final Color Function(Priority, ColorScheme) priorityColor;
+
+  const _PrioritySettingTile({
+    required this.priority,
+    required this.onSelect,
+    required this.cs,
+    required this.theme,
+    required this.priorityIcon,
+    required this.priorityLabel,
+    required this.priorityColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = priority == Priority.none
+        ? cs.outline
+        : priorityColor(priority, cs);
+
+    return PopupMenuButton<Priority>(
+      onSelected: onSelect,
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      itemBuilder: (context) =>
+          [Priority.high, Priority.medium, Priority.low, Priority.none]
+              .map(
+                (p) => PopupMenuItem(
+                  value: p,
+                  child: Row(
+                    children: [
+                      Icon(
+                        priorityIcon(p),
+                        color: priorityColor(p, cs),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        priorityLabel(p),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withAlpha(20),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(priorityIcon(priority), color: color, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Priority",
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: cs.onSurfaceVariant.withAlpha(150),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    priorityLabel(priority),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.unfold_more_rounded,
+              color: cs.onSurfaceVariant.withAlpha(100),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CategorySettingTile extends ConsumerWidget {
+  final List<int> selectedIds;
+  final VoidCallback onTap;
+  final Function(int) onRemove;
+  final ColorScheme cs;
+  final ThemeData theme;
+
+  const _CategorySettingTile({
+    required this.selectedIds,
+    required this.onTap,
+    required this.onRemove,
+    required this.cs,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesState = ref.watch(taskCategoryViewModelProvider);
+
+    return categoriesState.maybeWhen(
+      data: (categories) {
+        final selectedCats = categories
+            .where((c) => selectedIds.contains(c.id))
+            .toList();
+
+        return InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (selectedIds.isNotEmpty ? cs.primary : cs.outline)
+                        .withAlpha(20),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.dashboard_customize_rounded,
+                    color: selectedIds.isNotEmpty ? cs.primary : cs.outline,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Categories",
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant.withAlpha(150),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (selectedCats.isEmpty)
+                        Text(
+                          "Add category",
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: cs.onSurface,
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: selectedCats
+                                .map(
+                                  (c) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: cs.primary.withAlpha(20),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: cs.primary.withAlpha(40),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          c.icon,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          c.name,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: cs.primary,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        GestureDetector(
+                                          onTap: () => onRemove(c.id),
+                                          child: Icon(
+                                            Icons.close_rounded,
+                                            size: 14,
+                                            color: cs.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (selectedIds.length < 3)
+                  Icon(
+                    Icons.add_rounded,
+                    color: cs.onSurfaceVariant.withAlpha(100),
+                  )
+                else
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: cs.onSurfaceVariant.withAlpha(100),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }

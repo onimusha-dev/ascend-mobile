@@ -101,24 +101,34 @@ ThemeData buildTheme(
   // For light: very faint tint
   // For dark: deep dark tint, unless pureDark is true
   Color backgroundColor;
+  Color surfaceColor;
+
   if (isDark) {
-    backgroundColor = pureDark
-        ? Colors.black
-        : Color.alphaBlend(
-            colorScheme.primary.withValues(alpha: 0.05),
-            const Color(0xFF0D0D12),
-          );
+    if (pureDark) {
+      backgroundColor = Colors.black;
+      surfaceColor = const Color(0xFF0A0A0A);
+    } else {
+      backgroundColor = Color.alphaBlend(
+        colorScheme.primary.withValues(alpha: 0.05),
+        const Color(0xFF0D0D12),
+      );
+      surfaceColor = Color.alphaBlend(
+        colorScheme.primary.withValues(alpha: 0.08),
+        const Color(0xFF14141E),
+      );
+    }
   } else {
     backgroundColor = Color.alphaBlend(
       colorScheme.primary.withValues(alpha: 0.03),
       const Color(0xFFF8F9FC),
     );
+    surfaceColor = Colors.white;
   }
 
   return ThemeData(
     useMaterial3: true,
     brightness: brightness,
-    colorScheme: colorScheme,
+    colorScheme: colorScheme.copyWith(surface: surfaceColor),
     scaffoldBackgroundColor: backgroundColor,
     appBarTheme: AppBarTheme(
       systemOverlayStyle: SystemUiOverlayStyle(

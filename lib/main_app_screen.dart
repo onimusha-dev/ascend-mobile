@@ -150,10 +150,13 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         bottomNavigationBar: BottomAppBar(
           padding: EdgeInsets.zero,
           notchMargin: 8,
-          color: cs.surface,
+          color: cs.surface.withAlpha(
+            230,
+          ), // slight transparency for true edge-to-edge look
           elevation: 0,
           shape: const CircularNotchedRectangle(),
           child: SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: SizedBox(
