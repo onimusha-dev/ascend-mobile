@@ -24,10 +24,10 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
   DateTime? currentBackPressTime;
   late int currentIndex;
   final List<Widget> pages = [
-    HomeScreen(),
-    CalendarScreen(),
-    TestScreen(),
-    AnalyticsScreen(),
+    const HomeScreen(),
+    const CalendarScreen(),
+    const TestScreen(),
+    const AnalyticsScreen(),
   ];
 
   @override
@@ -75,39 +75,38 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         appBar: currentIndex == 1
             ? null
             : PreferredSize(
-                preferredSize: Size(double.infinity, 56),
+                preferredSize: const Size(double.infinity, 56),
                 child: AppBar(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SettingsScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.person),
-                      ),
-                    ],
+                  title: Text(
+                    currentIndex == 0
+                        ? 'My Tasks'
+                        : (currentIndex == 2 ? 'Focus' : 'Analytics'),
                   ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.settings_outlined),
+                    ),
+                  ],
                 ),
               ),
-        body: SafeArea(bottom: false, child: pages[currentIndex]),
-
+        body: pages[currentIndex],
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Container(
-          height: 64,
-          width: 64,
+          height: 60,
+          width: 60,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                // Theme.of(context).colorScheme.primary,
-                // Theme.of(context).colorScheme.secondary,
-                Colors.blue,
-                Colors.red,
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.tertiary,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -132,60 +131,56 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
                   },
                 );
               },
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
               customBorder: const CircleBorder(),
               child: const Icon(
                 Icons.add_rounded,
-                size: 38,
+                size: 28,
                 color: Colors.white,
               ),
             ),
           ),
         ),
-
-        bottomNavigationBar: MediaQuery.removePadding(
-          context: context,
-          removeBottom: true,
-          child: BottomAppBar(
-            height: 64,
-            padding: EdgeInsets.zero,
-            notchMargin: 10,
-            color: Theme.of(context).colorScheme.surface,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            shape: const CircularNotchedRectangle(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildTabItem(
-                    index: 0,
-                    icon: CupertinoIcons.house,
-                    activeIcon: CupertinoIcons.house_fill,
-                    label: 'Home',
-                  ),
-                  _buildTabItem(
-                    index: 1,
-                    icon: CupertinoIcons.calendar,
-                    activeIcon: CupertinoIcons.calendar_today,
-                    label: 'Calendar',
-                  ),
-                  const SizedBox(width: 80), // Space for FAB
-                  _buildTabItem(
-                    index: 2,
-                    icon: CupertinoIcons.timer,
-                    activeIcon: CupertinoIcons.timer_fill,
-                    label: 'Focus',
-                  ),
-                  _buildTabItem(
-                    index: 3,
-                    icon: CupertinoIcons.chart_bar,
-                    activeIcon: CupertinoIcons.chart_bar_fill,
-                    label: 'Analytics',
-                  ),
-                ],
-              ),
+        bottomNavigationBar: BottomAppBar(
+          height: 64,
+          padding: EdgeInsets.zero,
+          notchMargin: 4,
+          color: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+          shape: const CircularNotchedRectangle(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildTabItem(
+                  index: 0,
+                  icon: CupertinoIcons.house,
+                  activeIcon: CupertinoIcons.house_fill,
+                  label: 'Home',
+                ),
+                _buildTabItem(
+                  index: 1,
+                  icon: CupertinoIcons.calendar,
+                  activeIcon: CupertinoIcons.calendar_today,
+                  label: 'Calendar',
+                ),
+                const SizedBox(width: 48), // Space for FAB
+                _buildTabItem(
+                  index: 2,
+                  icon: CupertinoIcons.timer,
+                  activeIcon: CupertinoIcons.timer_fill,
+                  label: 'Focus',
+                ),
+                _buildTabItem(
+                  index: 3,
+                  icon: CupertinoIcons.chart_bar,
+                  activeIcon: CupertinoIcons.chart_bar_fill,
+                  label: 'Analytics',
+                ),
+              ],
             ),
           ),
         ),
@@ -201,20 +196,28 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
     required String label,
   }) {
     final isSelected = currentIndex == index;
-    return Opacity(
-      opacity: isSelected ? 1.0 : 0.5,
+    final color = isSelected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
+
+    return Expanded(
       child: InkWell(
         onTap: () => _switchTab(index),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isSelected ? activeIcon : icon, size: 26),
-            const SizedBox(height: 4),
+            Icon(isSelected ? activeIcon : icon, size: 24, color: color),
+            const SizedBox(height: 2),
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 10,
               ),
             ),
           ],

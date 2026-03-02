@@ -50,7 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.builder(
-        padding: const EdgeInsets.only(top: 12, bottom: 100),
+        padding: const EdgeInsets.only(top: 24, bottom: 120),
         itemCount: itemCount,
         itemBuilder: (context, index) {
           // ───────────────── Today header ─────────────────
@@ -215,7 +215,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               return const NoTaskRemainingWidget();
             }
             final task = todayTasks[index - 1];
-            return TaskCard(
+            return TasksCard(
               id: task.id,
               title: task.title,
               description: task.description ?? '',
@@ -251,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           final completedTask = todayCompletedTasks[completedIndex];
 
-          return TaskCard(
+          return TasksCard(
             id: completedTask.id,
             title: completedTask.title,
             description: completedTask.description ?? '',

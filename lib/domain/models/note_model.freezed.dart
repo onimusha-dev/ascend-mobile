@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NoteModel {
 
- int get id; String get title; String? get description; DateTime? get dueDate; DateTime get createdAt; DateTime get updatedAt; bool get isCompleted; Priority get priority; int? get taskType;
+ int get id; String get title; String? get description; DateTime? get dueDate; DateTime get createdAt; DateTime get updatedAt; bool get isCompleted; Priority get priority; String? get taskType;
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $NoteModelCopyWith<$Res>  {
   factory $NoteModelCopyWith(NoteModel value, $Res Function(NoteModel) _then) = _$NoteModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, int? taskType
+ int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, String? taskType
 });
 
 
@@ -73,7 +73,7 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
 as Priority,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
-as int?,
+as String?,
   ));
 }
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  String? taskType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NoteModel() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
@@ -179,7 +179,7 @@ return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.creat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  String? taskType)  $default,) {final _that = this;
 switch (_that) {
 case _NoteModel():
 return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.creat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  String? taskType)?  $default,) {final _that = this;
 switch (_that) {
 case _NoteModel() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
@@ -225,7 +225,7 @@ class _NoteModel implements NoteModel {
 @override final  DateTime updatedAt;
 @override final  bool isCompleted;
 @override final  Priority priority;
-@override final  int? taskType;
+@override final  String? taskType;
 
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
@@ -257,7 +257,7 @@ abstract mixin class _$NoteModelCopyWith<$Res> implements $NoteModelCopyWith<$Re
   factory _$NoteModelCopyWith(_NoteModel value, $Res Function(_NoteModel) _then) = __$NoteModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, int? taskType
+ int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, String? taskType
 });
 
 
@@ -285,7 +285,7 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
 as Priority,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
-as int?,
+as String?,
   ));
 }
 

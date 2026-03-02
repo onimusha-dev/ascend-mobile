@@ -6,11 +6,10 @@ class TestScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Test Screen')),
-      body: Column(
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
         children: [
-          const Text('Test Screen'),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () async {

@@ -47,7 +47,7 @@ class NoteRepository {
     String? description,
     String? dueDate,
     Priority? priority,
-    int? taskType,
+    String? taskType,
   ) async {
     try {
       final note = NoteTableCompanion(
@@ -86,7 +86,7 @@ class NoteRepository {
     String? title,
     String? description,
     String? dueDate,
-    int? taskType,
+    String? taskType,
   ) async {
     try {
       if (title == null &&

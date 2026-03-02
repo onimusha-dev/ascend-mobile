@@ -111,11 +111,11 @@ class $NoteTableTable extends NoteTable
     'taskType',
   );
   @override
-  late final GeneratedColumn<int> taskType = GeneratedColumn<int>(
+  late final GeneratedColumn<String> taskType = GeneratedColumn<String>(
     'task_type',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   @override
@@ -239,7 +239,7 @@ class $NoteTableTable extends NoteTable
         )!,
       ),
       taskType: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}task_type'],
       ),
     );
@@ -263,7 +263,7 @@ class NoteTableData extends DataClass implements Insertable<NoteTableData> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final Priority priority;
-  final int? taskType;
+  final String? taskType;
   const NoteTableData({
     required this.id,
     required this.title,
@@ -295,7 +295,7 @@ class NoteTableData extends DataClass implements Insertable<NoteTableData> {
       );
     }
     if (!nullToAbsent || taskType != null) {
-      map['task_type'] = Variable<int>(taskType);
+      map['task_type'] = Variable<String>(taskType);
     }
     return map;
   }
@@ -336,7 +336,7 @@ class NoteTableData extends DataClass implements Insertable<NoteTableData> {
       priority: $NoteTableTable.$converterpriority.fromJson(
         serializer.fromJson<int>(json['priority']),
       ),
-      taskType: serializer.fromJson<int?>(json['taskType']),
+      taskType: serializer.fromJson<String?>(json['taskType']),
     );
   }
   @override
@@ -353,7 +353,7 @@ class NoteTableData extends DataClass implements Insertable<NoteTableData> {
       'priority': serializer.toJson<int>(
         $NoteTableTable.$converterpriority.toJson(priority),
       ),
-      'taskType': serializer.toJson<int?>(taskType),
+      'taskType': serializer.toJson<String?>(taskType),
     };
   }
 
@@ -366,7 +366,7 @@ class NoteTableData extends DataClass implements Insertable<NoteTableData> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Priority? priority,
-    Value<int?> taskType = const Value.absent(),
+    Value<String?> taskType = const Value.absent(),
   }) => NoteTableData(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -448,7 +448,7 @@ class NoteTableCompanion extends UpdateCompanion<NoteTableData> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<Priority> priority;
-  final Value<int?> taskType;
+  final Value<String?> taskType;
   const NoteTableCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -480,7 +480,7 @@ class NoteTableCompanion extends UpdateCompanion<NoteTableData> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? priority,
-    Expression<int>? taskType,
+    Expression<String>? taskType,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -504,7 +504,7 @@ class NoteTableCompanion extends UpdateCompanion<NoteTableData> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<Priority>? priority,
-    Value<int?>? taskType,
+    Value<String?>? taskType,
   }) {
     return NoteTableCompanion(
       id: id ?? this.id,
@@ -549,7 +549,7 @@ class NoteTableCompanion extends UpdateCompanion<NoteTableData> {
       );
     }
     if (taskType.present) {
-      map['task_type'] = Variable<int>(taskType.value);
+      map['task_type'] = Variable<String>(taskType.value);
     }
     return map;
   }
@@ -948,7 +948,7 @@ typedef $$NoteTableTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<Priority> priority,
-      Value<int?> taskType,
+      Value<String?> taskType,
     });
 typedef $$NoteTableTableUpdateCompanionBuilder =
     NoteTableCompanion Function({
@@ -960,7 +960,7 @@ typedef $$NoteTableTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<Priority> priority,
-      Value<int?> taskType,
+      Value<String?> taskType,
     });
 
 class $$NoteTableTableFilterComposer
@@ -1013,7 +1013,7 @@ class $$NoteTableTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  ColumnFilters<int> get taskType => $composableBuilder(
+  ColumnFilters<String> get taskType => $composableBuilder(
     column: $table.taskType,
     builder: (column) => ColumnFilters(column),
   );
@@ -1068,7 +1068,7 @@ class $$NoteTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get taskType => $composableBuilder(
+  ColumnOrderings<String> get taskType => $composableBuilder(
     column: $table.taskType,
     builder: (column) => ColumnOrderings(column),
   );
@@ -1111,7 +1111,7 @@ class $$NoteTableTableAnnotationComposer
   GeneratedColumnWithTypeConverter<Priority, int> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
 
-  GeneratedColumn<int> get taskType =>
+  GeneratedColumn<String> get taskType =>
       $composableBuilder(column: $table.taskType, builder: (column) => column);
 }
 
@@ -1154,7 +1154,7 @@ class $$NoteTableTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<Priority> priority = const Value.absent(),
-                Value<int?> taskType = const Value.absent(),
+                Value<String?> taskType = const Value.absent(),
               }) => NoteTableCompanion(
                 id: id,
                 title: title,
@@ -1176,7 +1176,7 @@ class $$NoteTableTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<Priority> priority = const Value.absent(),
-                Value<int?> taskType = const Value.absent(),
+                Value<String?> taskType = const Value.absent(),
               }) => NoteTableCompanion.insert(
                 id: id,
                 title: title,

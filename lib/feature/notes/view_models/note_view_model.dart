@@ -48,7 +48,7 @@ class NoteViewModel extends Notifier<NoteState> {
     String? description,
     String? dueDate,
     Priority? priority,
-    int? taskType,
+    String? taskType,
   ) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -98,7 +98,7 @@ class NoteViewModel extends Notifier<NoteState> {
     String title,
     String? description,
     String? dueDate,
-    int? taskType,
+    String? taskType,
   ) async {
     state = state.copyWith(isLoading: true, error: null);
 

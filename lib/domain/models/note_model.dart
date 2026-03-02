@@ -15,7 +15,7 @@ abstract class NoteModel with _$NoteModel {
     required DateTime updatedAt,
     required bool isCompleted,
     required Priority priority,
-    int? taskType,
+    String? taskType,
   }) = _NoteModel;
 
   factory NoteModel.fromEntity(NoteTableData note) {

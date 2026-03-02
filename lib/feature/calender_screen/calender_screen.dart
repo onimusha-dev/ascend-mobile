@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fuck_your_todos/feature/calender_screen/provider/calendar_date_provider.dart';
-import 'package:fuck_your_todos/feature/calender_screen/widgets/shownotes.dart';
 import 'package:fuck_your_todos/feature/notes/view_models/note_view_model.dart';
+import 'package:fuck_your_todos/feature/notes/widgets/tasks_cards.dart';
 import 'widgets/week_carousel_widget.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -14,39 +14,53 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _selectedDate = DateTime.now();
+  final bool _showCompleted =
+      true; // Show by default as per "just show the tasks"
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(selectedCalendarDateProvider.notifier).setDate(_selectedDate);
+    });
+  }
 
   @override
   void dispose() {
-    // Reset to today so notes created from other tabs always default to today.
-    ref.read(selectedCalendarDateProvider.notifier).setDate(DateTime.now());
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final allTasksForDate = ref.watch(noteViewModelProvider).notes.where((
-      note,
-    ) {
-      // Use dueDate if set, otherwise fall back to createdAt
+    final noteState = ref.watch(noteViewModelProvider);
+    final allTasks = noteState.notes;
+
+    // Filter tasks for the selected date
+    final tasksForDate = allTasks.where((note) {
       final dateToMatch = (note.dueDate ?? note.createdAt).toLocal();
       return dateToMatch.year == _selectedDate.year &&
           dateToMatch.month == _selectedDate.month &&
           dateToMatch.day == _selectedDate.day;
     }).toList();
 
-    final incompleteTasks = allTasksForDate
-        .where((t) => !t.isCompleted)
-        .toList();
-    final completedTasks = allTasksForDate.where((t) => t.isCompleted).toList();
+    final remainingTasks = tasksForDate.where((t) => !t.isCompleted).toList();
+    final completedTasks = tasksForDate.where((t) => t.isCompleted).toList();
 
-    incompleteTasks.sort(
+    // Sort tasks by time
+    remainingTasks.sort(
       (a, b) => (a.dueDate ?? a.createdAt).compareTo(b.dueDate ?? b.createdAt),
     );
     completedTasks.sort(
-      (a, b) => (b.dueDate ?? b.createdAt).compareTo(a.dueDate ?? a.createdAt),
+      (a, b) => (a.dueDate ?? a.createdAt).compareTo(b.dueDate ?? b.createdAt),
     );
 
-    final selectedTasks = [...incompleteTasks, ...completedTasks];
+    final List<dynamic> listItems = [...remainingTasks];
+    if (completedTasks.isNotEmpty && _showCompleted) {
+      listItems.add("COMPLETED_HEADER");
+      listItems.addAll(completedTasks);
+    }
 
     return Column(
       children: [
@@ -54,7 +68,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           selectedDate: _selectedDate,
           onDateSelected: (date) {
             setState(() => _selectedDate = date);
-            // Keep shared provider in sync so CreateNoteView can read it
             ref.read(selectedCalendarDateProvider.notifier).setDate(date);
           },
         ),
@@ -73,31 +86,101 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               );
             },
-            child: ListView.builder(
-              key: ValueKey(_selectedDate),
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount:
-                  selectedTasks.length + (selectedTasks.isNotEmpty ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == selectedTasks.length) {
-                  final lastTask = selectedTasks.last;
-                  final lastTime = (lastTask.dueDate ?? lastTask.createdAt);
-                  // Just add 1 hour or something for the footer timestamp
-                  final footerTime = lastTime.add(const Duration(hours: 1));
-                  return TimelineFooter(time: footerTime);
-                }
-                final task = selectedTasks[index];
-                return Shownotes(
-                  id: task.id,
-                  title: task.title,
-                  description: task.description ?? '',
-                  dueTime: task.dueDate ?? task.createdAt,
-                  priority: task.priority,
-                  tags: const [],
-                  isCompleted: task.isCompleted,
-                  taskType: task.taskType,
-                );
-              },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView.builder(
+                controller: _scrollController,
+                key: ValueKey(_selectedDate),
+                padding: const EdgeInsets.only(bottom: 120, top: 24),
+                itemCount: listItems.length,
+                itemBuilder: (context, index) {
+                  final item = listItems[index];
+
+                  if (item == "COMPLETED_HEADER") {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 32, bottom: 20),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withAlpha(120),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  "COMPLETED",
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                        letterSpacing: 1.2,
+                                      ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withAlpha(40),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "${completedTasks.length}",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Expanded(
+                            child: Divider(indent: 16, thickness: 0.5),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final task = item;
+                  return TasksCard(
+                    id: task.id,
+                    title: task.title,
+                    description: task.description ?? '',
+                    dueTime: task.dueDate ?? task.createdAt,
+                    priority: task.priority,
+                    tags: const [],
+                    isCompleted: task.isCompleted,
+                    taskType: task.taskType,
+                  );
+                },
+              ),
             ),
           ),
         ),
