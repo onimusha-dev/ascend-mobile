@@ -1,9 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/data/repository/note_repository.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/data_and_privacy_screen/services/backup_and_restore.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/data/repository/note_repository.dart';
+import 'package:ascend/feature/settings_screen/Screens/data_and_privacy_screen/services/backup_and_restore.dart';
+import 'package:ascend/feature/settings_screen/widgets/common_setting_tile.dart';
+import 'periodic_backups_screen.dart';
+import 'package:ascend/core/services/notification_service.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 class DataAndPrivacyScreen extends ConsumerStatefulWidget {
   const DataAndPrivacyScreen({super.key});
@@ -20,9 +24,16 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
   void initState() {
     super.initState();
     dbSize = 'calculating';
-    BackupAndRestoreService().calculateDbSize().then(
-      (value) => setState(() => dbSize = value),
-    );
+    BackupAndRestoreService().calculateDbSize().then((value) {
+      if (mounted) {
+        setState(() => dbSize = value);
+        if (value == 'Error calc') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to calculate database size')),
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -86,7 +97,7 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
               const SizedBox(height: 32),
               _buildSectionTitle(context, "Backup & Restore"),
               const SizedBox(height: 12),
-              _DataSettingTile(
+              CommonSettingTile(
                 title: 'Export Data',
                 subtitle: 'Create a local backup file',
                 icon: Icons.cloud_upload_rounded,
@@ -94,7 +105,7 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
                 onTap: () => BackupAndRestoreService().createBackup(),
               ),
               const SizedBox(height: 12),
-              _DataSettingTile(
+              CommonSettingTile(
                 title: 'Import Data',
                 subtitle: 'Restore from a backup file',
                 icon: Icons.cloud_download_rounded,
@@ -102,7 +113,7 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
                 onTap: () => BackupAndRestoreService().restoreBackup(),
               ),
               const SizedBox(height: 12),
-              _DataSettingTile(
+              CommonSettingTile(
                 title: 'Scheduled Backups',
                 subtitle: 'Automate your data safety',
                 icon: Icons.history_rounded,
@@ -118,7 +129,8 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
               const SizedBox(height: 32),
               _buildSectionTitle(context, "Storage Management"),
               const SizedBox(height: 12),
-              _DataSettingTile(
+              // TODO: Hack - find a better way to listen to DB size changes
+              CommonSettingTile(
                 title: 'Database Size',
                 subtitle: 'Space used on your local drive',
                 icon: Icons.storage_rounded,
@@ -140,14 +152,24 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
                 onTap: () {
                   setState(() {
                     dbSize = 'calculating';
-                    BackupAndRestoreService().calculateDbSize().then((value) {
+                  });
+                  BackupAndRestoreService().calculateDbSize().then((value) {
+                    if (mounted) {
                       setState(() => dbSize = value);
-                    });
+                      if (value == 'Error calc') {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to calculate database size'),
+                          ),
+                        );
+                      }
+                    }
                   });
                 },
               ),
               const SizedBox(height: 12),
-              _DataSettingTile(
+              CommonSettingTile(
                 title: 'Wipe All Data',
                 subtitle: 'Reset app to factory state',
                 icon: Icons.delete_sweep_rounded,
@@ -162,6 +184,8 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
     );
   }
 
+  /// NOTE: CLEAR WHOLE DATABASE
+  /// There is no way to get it back
   Future<void> _handleWipeDatabase(BuildContext context, WidgetRef ref) async {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -287,16 +311,29 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
     await ref.read(appDatabaseProviderProvider).clearAllData();
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Database wiped successfully")),
+      // Show notification like restore does
+      NotificationService().showInstantBackupAndRestoreNotification(
+        id: 3,
+        title: 'Database Wiped',
+        body: 'All data has been cleared. Restart the app to finalize.',
+        showRestartButton: true,
       );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Database wiped successfully. Restarting..."),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
       // Refresh db size
-      setState(() {
-        dbSize = 'calculating';
-        BackupAndRestoreService().calculateDbSize().then(
-          (value) => setState(() => dbSize = value),
-        );
-      });
+      setState(() => dbSize = '0 KB');
+
+      // Delay slightly so the snackbar is seen, then rebirth
+      await Future.delayed(const Duration(seconds: 1));
+      if (context.mounted) {
+        Phoenix.rebirth(context);
+      }
     }
   }
 
@@ -309,151 +346,6 @@ class _DataAndPrivacyScreenState extends ConsumerState<DataAndPrivacyScreen> {
           fontWeight: FontWeight.w900,
           color: Theme.of(context).colorScheme.outline,
           letterSpacing: 1.5,
-        ),
-      ),
-    );
-  }
-}
-
-class _DataSettingTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _DataSettingTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    this.trailing,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Material(
-      color: cs.surfaceContainerHighest.withAlpha(80),
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onSurface,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant.withAlpha(150),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ?trailing,
-              if (onTap != null && trailing == null)
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: cs.onSurfaceVariant.withAlpha(100),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class PeriodicBackupsScreen extends StatelessWidget {
-  const PeriodicBackupsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Periodic Backups',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: cs.primary,
-            size: 20,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: cs.primary.withAlpha(15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                size: 64,
-                color: cs.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Automated Backups',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'Coming soon! We are working on a feature to automatically secure your data every day.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(color: cs.outline),
-              ),
-            ),
-          ],
         ),
       ),
     );

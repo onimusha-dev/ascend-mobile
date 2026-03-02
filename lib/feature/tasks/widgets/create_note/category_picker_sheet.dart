@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/task_category_view_model.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/feature/tasks/view_models/task_category_view_model.dart';
+import 'package:ascend/core/utils/icon_utils.dart';
 import 'add_category_dialog.dart';
 
 class CategoryPickerBottomSheet extends ConsumerWidget {
@@ -161,9 +162,9 @@ class CategoryPickerBottomSheet extends ConsumerWidget {
                                 color: cs.surface.withAlpha(100),
                                 shape: BoxShape.circle,
                               ),
-                              child: Text(
+                              child: IconUtils.buildCategoryIcon(
                                 cat.icon,
-                                style: const TextStyle(fontSize: 20),
+                                size: 20,
                               ),
                             ),
                             const SizedBox(width: 12),

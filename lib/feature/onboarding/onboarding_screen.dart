@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fuck_your_todos/core/constants/onboarding.dart';
-import 'package:fuck_your_todos/core/services/app_preferences.dart';
-import 'package:fuck_your_todos/main_app_screen.dart';
-import 'package:fuck_your_todos/feature/onboarding/widgets/onboarding_page_widget.dart';
-import 'package:fuck_your_todos/feature/onboarding/widgets/onboarding_notification_widget.dart';
-import 'package:fuck_your_todos/feature/onboarding/widgets/onboarding_backup_widget.dart';
+import 'package:ascend/core/constants/onboarding.dart';
+import 'package:ascend/core/services/app_preferences.dart';
+import 'package:ascend/main_app_screen.dart';
+import 'package:ascend/feature/onboarding/widgets/onboarding_page_widget.dart';
+import 'package:ascend/feature/onboarding/widgets/onboarding_notification_widget.dart';
+import 'package:ascend/feature/onboarding/widgets/onboarding_backup_widget.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

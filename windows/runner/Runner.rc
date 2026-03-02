@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "journal_app" "\0"
+            VALUE "CompanyName", "com.onimusha" "\0"
+            VALUE "FileDescription", "Ascend" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "journal_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "journal_app.exe" "\0"
-            VALUE "ProductName", "journal_app" "\0"
+            VALUE "InternalName", "Ascend" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.onimusha. All rights reserved." "\0"
+            VALUE "OriginalFilename", "ascend.exe" "\0"
+            VALUE "ProductName", "Ascend" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

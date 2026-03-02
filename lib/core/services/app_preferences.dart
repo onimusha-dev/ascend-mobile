@@ -23,6 +23,7 @@ class AppPreferences {
   static const String keyDoubleTapToExit = 'double_tap_to_exit';
   static const String keyBackupLocation = 'backup_location';
   static const String keyOnboardingCompleted = 'onboarding_completed';
+  static const String keyGamificationEnabled = 'gamification_enabled';
 
   // Helper methods
   static String? getPreference(String key) => instance.getString(key);
@@ -31,6 +32,15 @@ class AppPreferences {
   static bool? getPreferenceBool(String key) => instance.getBool(key);
   static Future<bool> setPreferenceBool(String key, bool value) =>
       instance.setBool(key, value);
+
+  static int? getPreferenceInt(String key) => instance.getInt(key);
+  static Future<bool> setPreferenceInt(String key, int value) =>
+      instance.setInt(key, value);
+
+  static List<String>? getPreferenceStringList(String key) =>
+      instance.getStringList(key);
+  static Future<bool> setPreferenceStringList(String key, List<String> value) =>
+      instance.setStringList(key, value);
 
   static String exportToJson() {
     final Map<String, dynamic> prefsMap = {};

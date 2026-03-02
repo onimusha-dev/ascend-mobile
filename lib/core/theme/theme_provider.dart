@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/core/theme/app_themes.dart';
-import 'package:fuck_your_todos/core/services/app_preferences.dart';
+import 'package:ascend/core/theme/app_themes.dart';
+import 'package:ascend/core/services/app_preferences.dart';
 
 // Theme State
 class ThemeState {
@@ -56,7 +56,7 @@ class ThemeController extends Notifier<ThemeState> {
 
     final preset = AppThemes.presets.firstWhere(
       (p) => p.name == presetStr,
-      orElse: () => AppThemes.catppuccin,
+      orElse: () => AppThemes.miku,
     );
 
     return ThemeState(themeMode: themeMode, preset: preset, pureDark: pureDark);
@@ -87,6 +87,21 @@ class ThemeController extends Notifier<ThemeState> {
       AppPreferences.keyPureDark,
       pureDark,
     );
+  }
+}
+
+class FadePageTransitionsBuilder extends PageTransitionsBuilder {
+  const FadePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(opacity: animation, child: child);
   }
 }
 
@@ -130,6 +145,15 @@ ThemeData buildTheme(
     brightness: brightness,
     colorScheme: colorScheme.copyWith(surface: surfaceColor),
     scaffoldBackgroundColor: backgroundColor,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: <TargetPlatform, PageTransitionsBuilder>{
+        TargetPlatform.android: FadePageTransitionsBuilder(),
+        TargetPlatform.iOS: FadePageTransitionsBuilder(),
+        TargetPlatform.linux: FadePageTransitionsBuilder(),
+        TargetPlatform.macOS: FadePageTransitionsBuilder(),
+        TargetPlatform.windows: FadePageTransitionsBuilder(),
+      },
+    ),
     appBarTheme: AppBarTheme(
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,

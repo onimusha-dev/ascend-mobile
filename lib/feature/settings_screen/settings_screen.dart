@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/core/constants/constants.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/account_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/appearance_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/data_and_privacy_screen/data_and_privacy_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/categories_screen/categories_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/about_screen.dart';
+import 'package:ascend/core/constants/constants.dart';
+import 'package:ascend/feature/settings_screen/Screens/account_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/appearance_screen.dart';
+// import 'package:ascend/feature/settings_screen/Screens/inbox_screen/inbox_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/notification_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/data_and_privacy_screen/data_and_privacy_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/categories_screen/categories_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/about_screen.dart';
+import 'package:ascend/feature/settings_screen/gamification_screen/gamification_screen.dart';
+import 'package:ascend/feature/settings_screen/widgets/common_setting_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -44,36 +48,97 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               _buildSectionTitle(context, "Preference"),
               const SizedBox(height: 12),
-              _SettingsTile(
+              CommonSettingTile(
                 title: 'Appearance',
                 subtitle: 'Theme, Language, Fonts',
                 icon: Icons.palette_rounded,
-                color: Colors.blue,
+                color: const Color(0xFF6366F1), // Indigo
+                iconSize: 24,
+                iconPadding: 12,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AppearanceScreen()),
                 ),
               ),
               const SizedBox(height: 12),
-              _SettingsTile(
+              CommonSettingTile(
+                title: 'Notifications',
+                subtitle: 'Reminders and alerts',
+                icon: Icons.notifications_rounded,
+                color: const Color(0xFFF43F5E), // Rose
+                iconSize: 24,
+                iconPadding: 12,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CommonSettingTile(
                 title: 'Categories',
                 subtitle: 'Manage task tags & icons',
                 icon: Icons.category_rounded,
-                color: Colors.orange,
+                color: const Color(0xFFF59E0B), // Amber
+                iconSize: 24,
+                iconPadding: 12,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const CategoriesScreen()),
                 ),
               ),
-
+              const SizedBox(height: 12),
+              CommonSettingTile(
+                title: 'Gamification',
+                subtitle: 'Points, levels, and streaks',
+                icon: Icons.sports_esports_rounded,
+                color: const Color(0xFF10B981), // Emerald/Green
+                iconSize: 24,
+                iconPadding: 12,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const GamificationScreen()),
+                ),
+              ),
               const SizedBox(height: 32),
               _buildSectionTitle(context, "Security & Data"),
+
+              /// NOTE: Account screen is not implemented yet.
               const SizedBox(height: 12),
-              _SettingsTile(
+              CommonSettingTile(
+                title: 'Account',
+                subtitle: 'Cloud sync, Premium features',
+                icon: Icons.account_circle_rounded,
+                color: Colors.purple,
+                iconSize: 24,
+                iconPadding: 12,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AccountScreen()),
+                ),
+              ),
+
+              /// NOTE: Inbox screen is not implemented yet.
+              // const SizedBox(height: 12),
+              // CommonSettingTile(
+              //   title: 'Inbox',
+              //   subtitle: 'Empty inbox',
+              //   icon: Icons.mail_rounded,
+              //   color: cs.primary,
+              //   iconSize: 24,
+              //   iconPadding: 12,
+              //   onTap: () => Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (_) => const InboxScreen()),
+              //   ),
+              // ),
+              const SizedBox(height: 12),
+              CommonSettingTile(
                 title: 'Data & Privacy',
                 subtitle: 'Backup, Restore, Passcode',
-                icon: Icons.shield_rounded,
-                color: Colors.green,
+                icon: Icons.security_rounded,
+                color: const Color(0xFF3B82F6), // Blue
+                iconSize: 24,
+                iconPadding: 12,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -81,26 +146,18 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              _SettingsTile(
-                title: 'Account',
-                subtitle: 'Cloud sync, Premium features',
-                icon: Icons.account_circle_rounded,
-                color: Colors.purple,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AccountScreen()),
-                ),
-              ),
 
               const SizedBox(height: 32),
               _buildSectionTitle(context, "Support"),
+
               const SizedBox(height: 12),
-              _SettingsTile(
+              CommonSettingTile(
                 title: 'About',
                 subtitle: 'Version ${AppConstants.appVersion}',
                 icon: Icons.info_rounded,
-                color: cs.outline,
+                color: const Color(0xFF64748B), // Slate
+                iconSize: 24,
+                iconPadding: 12,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AboutScreen()),
@@ -114,91 +171,19 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: Theme.of(context).colorScheme.outline,
-          letterSpacing: 1.5,
-        ),
-      ),
-    );
-  }
 }
 
-class _SettingsTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _SettingsTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Material(
-      color: cs.surfaceContainerHighest.withAlpha(80),
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant.withAlpha(150),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: cs.onSurfaceVariant.withAlpha(100),
-              ),
-            ],
-          ),
-        ),
+/// Builds a section title for the settings screen.
+Widget _buildSectionTitle(BuildContext context, String title) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 4),
+    child: Text(
+      title.toUpperCase(),
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        fontWeight: FontWeight.w900,
+        color: Theme.of(context).colorScheme.outline,
+        letterSpacing: 1.5,
       ),
-    );
-  }
+    ),
+  );
 }

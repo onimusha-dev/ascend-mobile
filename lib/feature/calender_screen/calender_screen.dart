@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/feature/calender_screen/provider/calendar_date_provider.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/note_view_model.dart';
-import 'package:fuck_your_todos/feature/notes/widgets/tasks_cards.dart';
+import 'package:ascend/feature/calender_screen/provider/calendar_date_provider.dart';
+import 'package:ascend/feature/tasks/view_models/note_view_model.dart';
+import 'package:ascend/feature/tasks/widgets/tasks_cards.dart';
 import 'widgets/week_carousel_widget.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -73,100 +73,122 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 400),
+            layoutBuilder: (currentChild, previousChildren) {
+              return Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  ...previousChildren,
+                  ?currentChild,
+                ],
+              );
+            },
             transitionBuilder: (child, animation) {
               return FadeTransition(opacity: animation, child: child);
             },
             child: listItems.isEmpty
                 ? _buildEmptyState(context)
-                : ListView.builder(
-                    controller: _scrollController,
+                : SingleChildScrollView(
                     key: ValueKey(_selectedDate),
-                    padding: const EdgeInsets.only(
-                      bottom: 120,
-                      top: 16,
-                      left: 16,
-                      right: 16,
-                    ),
-                    itemCount: listItems.length,
-                    itemBuilder: (context, index) {
-                      final item = listItems[index];
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Remaining Tasks
+                        Wrap(
+                          alignment: WrapAlignment.start,
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: remainingTasks
+                              .map(
+                                (item) => TasksCard(
+                                  id: item.id,
+                                  title: item.title,
+                                  description: item.description ?? '',
+                                  dueTime: item.dueDate ?? item.createdAt,
+                                  priority: item.priority,
+                                  difficulty: item.difficulty,
+                                  isCompleted: item.isCompleted,
+                                  taskType: item.taskType,
+                                ),
+                              )
+                              .toList(),
+                        ),
 
-                      if (item == "COMPLETED_HEADER") {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: cs.primary.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: cs.primary.withAlpha(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      size: 16,
-                                      color: cs.primary,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "COMPLETED TASKS",
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w900,
-                                            color: cs.primary,
-                                            letterSpacing: 1.2,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "•",
-                                      style: TextStyle(
-                                        color: cs.primary.withAlpha(100),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "${completedTasks.length}",
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: cs.primary,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Expanded(
-                                child: Divider(indent: 12, endIndent: 4),
-                              ),
-                            ],
+                        if (completedTasks.isNotEmpty && _showCompleted) ...[
+                          _buildCompletedHeader(
+                            cs,
+                            theme,
+                            completedTasks.length,
                           ),
-                        );
-                      }
-
-                      return TasksCard(
-                        id: item.id,
-                        title: item.title,
-                        description: item.description ?? '',
-                        dueTime: item.dueDate ?? item.createdAt,
-                        priority: item.priority,
-                        tags: const [],
-                        isCompleted: item.isCompleted,
-                        taskType: item.taskType,
-                      );
-                    },
+                          Wrap(
+                            alignment: WrapAlignment.start,
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: completedTasks
+                                .map(
+                                  (item) => TasksCard(
+                                    id: item.id,
+                                    title: item.title,
+                                    description: item.description ?? '',
+                                    dueTime: item.dueDate ?? item.createdAt,
+                                    priority: item.priority,
+                                    difficulty: item.difficulty,
+                                    isCompleted: item.isCompleted,
+                                    taskType: item.taskType,
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCompletedHeader(ColorScheme cs, ThemeData theme, int count) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: cs.primary.withAlpha(20),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cs.primary.withAlpha(30)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, size: 16, color: cs.primary),
+                const SizedBox(width: 10),
+                Text(
+                  "COMPLETED TASKS",
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: cs.primary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text("•", style: TextStyle(color: cs.primary.withAlpha(100))),
+                const SizedBox(width: 10),
+                Text(
+                  "$count",
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(child: Divider(indent: 12, endIndent: 4)),
+        ],
+      ),
     );
   }
 

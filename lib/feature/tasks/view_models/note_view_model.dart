@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/tables/note_table.dart';
-import 'package:fuck_your_todos/data/repository/note_repository.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/state/note_state.dart';
+import 'package:ascend/data/db/tables/note_table.dart';
+import 'package:ascend/data/repository/note_repository.dart';
+import 'package:ascend/feature/tasks/view_models/state/note_state.dart';
+import 'package:ascend/view_model/gamification_provider.dart';
+import 'package:ascend/view_model/user_progress_view_model.dart';
 
 final noteViewModelProvider = NotifierProvider<NoteViewModel, NoteState>(
   () => NoteViewModel(),
@@ -48,6 +50,7 @@ class NoteViewModel extends Notifier<NoteState> {
     String? description,
     String? dueDate,
     Priority? priority,
+    TaskDifficulty difficulty,
     String? taskType,
   ) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -55,7 +58,14 @@ class NoteViewModel extends Notifier<NoteState> {
     try {
       await ref
           .read(noteRepositoryProvider)
-          .insertNote(title, description, dueDate, priority, taskType);
+          .insertNote(
+            title,
+            description,
+            dueDate,
+            priority,
+            difficulty,
+            taskType,
+          );
       await getAllNotes();
     } catch (e, s) {
       state = state.copyWith(
@@ -69,7 +79,18 @@ class NoteViewModel extends Notifier<NoteState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      await ref.read(noteRepositoryProvider).toggleCompletion(id);
+      final repository = ref.read(noteRepositoryProvider);
+      final note = await repository.getNoteById(id);
+
+      await repository.toggleCompletion(id);
+
+      // If gamification is enabled and task was NOT completed and now it IS completed, award points
+      if (ref.read(gamificationProvider) && !note.isCompleted) {
+        await ref
+            .read(userProgressViewModelProvider.notifier)
+            .awardPoints(note.difficulty);
+      }
+
       await getAllNotes();
     } catch (e, s) {
       state = state.copyWith(
@@ -98,6 +119,7 @@ class NoteViewModel extends Notifier<NoteState> {
     String title,
     String? description,
     String? dueDate,
+    TaskDifficulty? difficulty,
     String? taskType,
   ) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -105,7 +127,7 @@ class NoteViewModel extends Notifier<NoteState> {
     try {
       await ref
           .read(noteRepositoryProvider)
-          .updateNote(id, title, description, dueDate, taskType);
+          .updateNote(id, title, description, dueDate, difficulty, taskType);
       await getAllNotes();
     } catch (e, s) {
       state = state.copyWith(

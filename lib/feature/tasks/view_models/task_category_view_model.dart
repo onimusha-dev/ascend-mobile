@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/core/constants/default_categories.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/core/constants/default_categories.dart';
 
 final taskCategoryViewModelProvider =
     NotifierProvider<
@@ -53,6 +53,12 @@ class TaskCategoryViewModel
   Future<void> deleteCategory(int id) async {
     final db = ref.read(appDatabaseProviderProvider);
     await db.taskCategoryDao.deleteCategory(id);
+    _loadCategories();
+  }
+
+  Future<void> resetToDefault() async {
+    final db = ref.read(appDatabaseProviderProvider);
+    await db.taskCategoryDao.deleteAllCategories();
     _loadCategories();
   }
 }

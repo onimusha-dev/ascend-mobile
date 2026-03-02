@@ -2,12 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/core/theme/theme_provider.dart';
-import 'package:fuck_your_todos/feature/calender_screen/provider/calendar_date_provider.dart';
-import 'package:fuck_your_todos/feature/calender_screen/calender_screen.dart';
-import 'package:fuck_your_todos/feature/notes/widgets/create_note/create_note_view.dart';
-import 'package:fuck_your_todos/feature/profile_screen/analytics_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/settings_screen.dart';
+import 'package:ascend/core/theme/theme_provider.dart';
+import 'package:ascend/feature/calender_screen/provider/calendar_date_provider.dart';
+import 'package:ascend/feature/calender_screen/calender_screen.dart';
+import 'package:ascend/feature/tasks/widgets/create_note/create_note_view.dart';
+import 'package:ascend/feature/profile_screen/analytics_screen.dart';
+import 'package:ascend/feature/settings_screen/gamification_screen/gamification_screen.dart';
+import 'package:ascend/feature/settings_screen/settings_screen.dart';
+import 'package:ascend/view_model/gamification_provider.dart';
+import 'package:ascend/view_model/user_progress_view_model.dart';
 
 class MainAppScreen extends ConsumerStatefulWidget {
   final int initialIndex;
@@ -68,13 +71,86 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         extendBody: true,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: Text(
-            currentIndex == 0 ? 'Index' : 'Analytics',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-          ),
+          title: currentIndex != 0
+              ? Text(
+                  'Analytics',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                )
+              : null,
+          leading: currentIndex == 0
+              ? Consumer(
+                  builder: (context, ref, child) {
+                    final isGamificationEnabled = ref.watch(
+                      gamificationProvider,
+                    );
+                    if (!isGamificationEnabled) return const SizedBox();
+
+                    final progressAsync = ref.watch(
+                      userProgressViewModelProvider,
+                    );
+                    return progressAsync.when(
+                      data: (progress) {
+                        if (progress == null) return const SizedBox();
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const GamificationScreen(),
+                              ),
+                            );
+                          },
+                          child: Center(
+                            child: Hero(
+                              tag: 'app_bar_progress',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                margin: const EdgeInsets.only(left: 12),
+                                decoration: BoxDecoration(
+                                  color: cs.primaryContainer,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: cs.primary.withAlpha(51),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.stars_rounded,
+                                      color: cs.primary,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${progress.currentLevel}',
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                            color: cs.onPrimaryContainer,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox(),
+                      error: (_, _) => const SizedBox(),
+                    );
+                  },
+                )
+              : null,
+          leadingWidth: 80,
           elevation: 0,
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
@@ -109,14 +185,7 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         floatingActionButton: Container(
           height: 60,
           width: 60,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [cs.primary, cs.tertiary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -150,34 +219,31 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         bottomNavigationBar: BottomAppBar(
           padding: EdgeInsets.zero,
           notchMargin: 8,
-          color: cs.surface.withAlpha(
-            230,
+          color: cs.surface.withValues(
+            alpha: 0.95,
           ), // slight transparency for true edge-to-edge look
           elevation: 0,
           shape: const CircularNotchedRectangle(),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                height: 60, // Content height
-                child: Row(
-                  children: [
-                    _buildTabItem(
-                      index: 0,
-                      icon: CupertinoIcons.calendar,
-                      activeIcon: CupertinoIcons.calendar_today,
-                      label: 'Index',
-                    ),
-                    const SizedBox(width: 80), // Space for FAB
-                    _buildTabItem(
-                      index: 1,
-                      icon: CupertinoIcons.chart_bar,
-                      activeIcon: CupertinoIcons.chart_bar_fill,
-                      label: 'Analytics',
-                    ),
-                  ],
-                ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: SizedBox(
+              height: 60, // Content height
+              child: Row(
+                children: [
+                  _buildTabItem(
+                    index: 0,
+                    icon: CupertinoIcons.calendar,
+                    activeIcon: CupertinoIcons.calendar_today,
+                    label: 'Index',
+                  ),
+                  const SizedBox(width: 80), // Space for FAB
+                  _buildTabItem(
+                    index: 1,
+                    icon: CupertinoIcons.chart_bar,
+                    activeIcon: CupertinoIcons.chart_bar_fill,
+                    label: 'Analytics',
+                  ),
+                ],
               ),
             ),
           ),

@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fuck_your_todos/domain/models/note_model.dart';
+import 'package:ascend/domain/models/note_model.dart';
 
 part 'note_state.freezed.dart';
 

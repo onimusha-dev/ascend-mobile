@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/core/theme/app_themes.dart';
-import 'package:fuck_your_todos/core/theme/theme_provider.dart';
+import 'package:ascend/core/theme/app_themes.dart';
+import 'package:ascend/core/theme/theme_provider.dart';
 
 class OnboardingThemeWidget extends ConsumerWidget {
   const OnboardingThemeWidget({super.key});
@@ -11,6 +11,18 @@ class OnboardingThemeWidget extends ConsumerWidget {
     final themeState = ref.watch(themeProvider);
     final currentPreset = themeState.preset;
     final theme = Theme.of(context);
+
+    final dynamicTheme = AppThemes.presets.firstWhere(
+      (p) => p.name == 'Dynamic',
+      orElse: () => AppThemes.dynamic,
+    );
+    final sortedPresets = [
+      currentPreset,
+      if (currentPreset.name != 'Dynamic') dynamicTheme,
+      ...AppThemes.presets.where(
+        (p) => p.name != currentPreset.name && p.name != 'Dynamic',
+      ),
+    ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -36,9 +48,9 @@ class OnboardingThemeWidget extends ConsumerWidget {
               mainAxisSpacing: 16,
               childAspectRatio: 0.85,
             ),
-            itemCount: AppThemes.presets.length,
+            itemCount: sortedPresets.length,
             itemBuilder: (context, index) {
-              final preset = AppThemes.presets[index];
+              final preset = sortedPresets[index];
               final isSelected = currentPreset.name == preset.name;
 
               return _OnboardingThemePreviewCard(
@@ -97,15 +109,6 @@ class _OnboardingThemePreviewCard extends ConsumerWidget {
                       : previewCs.outlineVariant,
                   width: isSelected ? 2 : 0.5,
                 ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: previewCs.primary.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
               ),
               child: _PreviewContent(previewCs: previewCs, preset: preset),
             ),

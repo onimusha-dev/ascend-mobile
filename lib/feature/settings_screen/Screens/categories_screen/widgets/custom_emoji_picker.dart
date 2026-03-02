@@ -1,78 +1,5 @@
 import 'package:flutter/material.dart';
-
-// Predefined sexy categories the user requested
-const List<Map<String, String>> predefinedCategories = [
-  {'name': 'Study', 'icon': '📚'},
-  {'name': 'Gym', 'icon': '💪'},
-  {'name': 'Work', 'icon': '💼'},
-  {'name': 'Personal', 'icon': '👤'},
-  {'name': 'Meeting', 'icon': '🤝'},
-  {'name': 'Shopping', 'icon': '🛒'},
-  {'name': 'Health', 'icon': '❤️'},
-  {'name': 'Finance', 'icon': '💰'},
-  {'name': 'Travel', 'icon': '✈️'},
-  {'name': 'Ideas', 'icon': '💡'},
-  {'name': 'Event', 'icon': '🎉'},
-  {'name': 'Urgent', 'icon': '🔥'},
-  {'name': 'Food', 'icon': '🍔'},
-  {'name': 'Home', 'icon': '🏠'},
-  {'name': 'Gaming', 'icon': '🎮'},
-  {'name': 'Hobby', 'icon': '🎨'},
-  {'name': 'Sports', 'icon': '⚽'},
-  {'name': 'Music', 'icon': '🎵'},
-];
-
-// Predefined set of beautiful icons for the custom picker
-const List<String> premiumIcons = [
-  '📚',
-  '💪',
-  '💼',
-  '👤',
-  '🤝',
-  '🛒',
-  '❤️',
-  '💰',
-  '✈️',
-  '💡',
-  '🎉',
-  '🔥',
-  '🍔',
-  '🏠',
-  '🎮',
-  '🎨',
-  '⚽',
-  '🎵',
-  '📝',
-  '⚡',
-  '🌟',
-  '🚀',
-  '🎯',
-  '💎',
-  '🌈',
-  '✨',
-  '💻',
-  '📱',
-  '🎧',
-  '📸',
-  '☕',
-  '🍷',
-  '🍕',
-  '🍰',
-  '🍿',
-  '🎁',
-  '🎈',
-  '🎃',
-  '🎄',
-  '🎆',
-  '🎇',
-  '🎪',
-  '🎢',
-  '🎨',
-  '🎬',
-  '🎤',
-  '🎫',
-  '🏆',
-];
+import 'package:ascend/core/constants/constants.dart';
 
 class CustomEmojiPicker extends StatelessWidget {
   final String selectedEmoji;
@@ -86,14 +13,13 @@ class CustomEmojiPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       height: 250,
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(color: cs.outlineVariant.withAlpha(50)),
       ),
       child: GridView.builder(
         padding: const EdgeInsets.all(12),
@@ -102,38 +28,31 @@ class CustomEmojiPicker extends StatelessWidget {
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
         ),
-        itemCount: premiumIcons.length,
+        itemCount: CategoryIcons.premiumIcons.length,
         itemBuilder: (context, index) {
-          final emoji = premiumIcons[index];
-          final isSelected = emoji == selectedEmoji;
+          final iconCode = CategoryIcons.premiumIcons[index];
+          final isSelected = iconCode == selectedEmoji;
 
           return InkWell(
-            onTap: () => onEmojiSelected(emoji),
+            onTap: () => onEmojiSelected(iconCode),
             borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.2)
+                    ? cs.primary.withAlpha(30)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.transparent,
+                  color: isSelected ? cs.primary : Colors.transparent,
                   width: 2,
                 ),
               ),
               alignment: Alignment.center,
-              child: Text(
-                emoji,
-                style: TextStyle(
-                  fontSize: 24,
-                  // Scale up slightly if selected
-                  height: isSelected ? 1.1 : 1.0,
-                ),
+              child: Icon(
+                CategoryIcons.iconMap[iconCode] ?? Icons.category_rounded,
+                size: 24,
+                color: isSelected ? cs.primary : cs.onSurfaceVariant,
               ),
             ),
           );

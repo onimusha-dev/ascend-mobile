@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fuck_your_todos/feature/auth/widget/login_screen.dart';
-import 'package:fuck_your_todos/feature/auth/widget/register_screen.dart';
-import 'package:fuck_your_todos/feature/settings_screen/Screens/data_and_privacy_screen/services/backup_and_restore.dart';
+import 'package:ascend/feature/auth/widget/login_screen.dart';
+import 'package:ascend/feature/auth/widget/register_screen.dart';
+import 'package:ascend/feature/settings_screen/Screens/data_and_privacy_screen/services/backup_and_restore.dart';
 
 class OnboardingBackupWidget extends StatelessWidget {
   const OnboardingBackupWidget({super.key});

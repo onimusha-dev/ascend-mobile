@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/tables/note_table.dart';
-import 'package:fuck_your_todos/domain/models/note_model.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/note_view_model.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/task_category_view_model.dart';
+import 'package:ascend/data/db/tables/note_table.dart';
+import 'package:ascend/domain/models/note_model.dart';
+import 'package:ascend/feature/tasks/view_models/note_view_model.dart';
 import 'package:intl/intl.dart';
+import 'package:ascend/view_model/gamification_provider.dart';
 
 import 'note_text_field.dart';
 import 'category_picker_sheet.dart';
+import 'task_setting_tiles.dart';
 
 class CreateNoteView extends ConsumerStatefulWidget {
   final NoteModel? noteToEdit;
@@ -24,6 +25,7 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
   late final TextEditingController _descriptionController;
   DateTime? _selectedDateTime;
   Priority _selectedPriority = Priority.none;
+  TaskDifficulty _selectedDifficulty = TaskDifficulty.easy;
   List<int> _selectedCategoryIds = [];
 
   bool get _isEditMode => widget.noteToEdit != null;
@@ -45,6 +47,7 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
     );
     _selectedDateTime = note?.dueDate ?? widget.initialDate;
     _selectedPriority = note?.priority ?? Priority.none;
+    _selectedDifficulty = note?.difficulty ?? TaskDifficulty.easy;
 
     if (note?.taskType != null && note!.taskType!.isNotEmpty) {
       _selectedCategoryIds = note.taskType!
@@ -148,7 +151,14 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
       final note = widget.noteToEdit!;
       await ref
           .read(noteViewModelProvider.notifier)
-          .updateNote(note.id, title, description, dueDateStr, taskTypeStr);
+          .updateNote(
+            note.id,
+            title,
+            description,
+            dueDateStr,
+            _selectedDifficulty,
+            taskTypeStr,
+          );
       if (_selectedPriority != note.priority) {
         await ref
             .read(noteViewModelProvider.notifier)
@@ -162,6 +172,7 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
             description,
             dueDateStr,
             _selectedPriority,
+            _selectedDifficulty,
             taskTypeStr,
           );
     }
@@ -296,7 +307,8 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
                     ),
                     child: Column(
                       children: [
-                        _TaskSettingTile(
+                        // TODO: Fix potential bug where dates in the past can be selected
+                        TaskSettingTile(
                           icon: Icons.calendar_today_rounded,
                           label: "Due Date",
                           value: _selectedDateTime != null
@@ -316,7 +328,7 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
                           endIndent: 16,
                           color: cs.outlineVariant.withAlpha(50),
                         ),
-                        _PrioritySettingTile(
+                        PrioritySettingTile(
                           priority: _selectedPriority,
                           onSelect: (p) =>
                               setState(() => _selectedPriority = p),
@@ -332,7 +344,7 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
                           endIndent: 16,
                           color: cs.outlineVariant.withAlpha(50),
                         ),
-                        _CategorySettingTile(
+                        CategorySettingTile(
                           selectedIds: _selectedCategoryIds,
                           onTap: _showCategoryPicker,
                           onRemove: (id) =>
@@ -340,6 +352,21 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
                           cs: cs,
                           theme: theme,
                         ),
+                        if (ref.watch(gamificationProvider)) ...[
+                          Divider(
+                            height: 1,
+                            indent: 64,
+                            endIndent: 16,
+                            color: cs.outlineVariant.withAlpha(50),
+                          ),
+                          DifficultySettingTile(
+                            difficulty: _selectedDifficulty,
+                            onSelect: (d) =>
+                                setState(() => _selectedDifficulty = d),
+                            cs: cs,
+                            theme: theme,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -353,28 +380,16 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: _canSave
-                            ? LinearGradient(
-                                colors: [cs.primary, cs.tertiary],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : null,
-                        color: _canSave ? null : cs.surfaceContainerHighest,
-                        boxShadow: _canSave
-                            ? [
-                                BoxShadow(
-                                  color: cs.primary.withAlpha(80),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : [],
+                        color: _canSave
+                            ? cs.primary
+                            : cs.surfaceContainerHighest,
                       ),
                       child: ElevatedButton(
                         onPressed: _canSave ? _save : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: _canSave
+                              ? cs.primary
+                              : Colors.transparent,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
@@ -415,322 +430,6 @@ class _CreateNoteViewState extends ConsumerState<CreateNoteView> {
           letterSpacing: 1.5,
         ),
       ),
-    );
-  }
-}
-
-class _TaskSettingTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-  final VoidCallback onTap;
-  final VoidCallback? onClear;
-
-  const _TaskSettingTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.onTap,
-    this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withAlpha(20),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: cs.onSurfaceVariant.withAlpha(150),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    value,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (onClear != null)
-              IconButton(
-                onPressed: onClear,
-                icon: Icon(
-                  Icons.close_rounded,
-                  color: cs.onSurfaceVariant.withAlpha(100),
-                  size: 20,
-                ),
-              )
-            else
-              Icon(
-                Icons.chevron_right_rounded,
-                color: cs.onSurfaceVariant.withAlpha(100),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PrioritySettingTile extends StatelessWidget {
-  final Priority priority;
-  final Function(Priority) onSelect;
-  final ColorScheme cs;
-  final ThemeData theme;
-  final IconData Function(Priority) priorityIcon;
-  final String Function(Priority) priorityLabel;
-  final Color Function(Priority, ColorScheme) priorityColor;
-
-  const _PrioritySettingTile({
-    required this.priority,
-    required this.onSelect,
-    required this.cs,
-    required this.theme,
-    required this.priorityIcon,
-    required this.priorityLabel,
-    required this.priorityColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = priority == Priority.none
-        ? cs.outline
-        : priorityColor(priority, cs);
-
-    return PopupMenuButton<Priority>(
-      onSelected: onSelect,
-      offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      itemBuilder: (context) =>
-          [Priority.high, Priority.medium, Priority.low, Priority.none]
-              .map(
-                (p) => PopupMenuItem(
-                  value: p,
-                  child: Row(
-                    children: [
-                      Icon(
-                        priorityIcon(p),
-                        color: priorityColor(p, cs),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        priorityLabel(p),
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withAlpha(20),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(priorityIcon(priority), color: color, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Priority",
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: cs.onSurfaceVariant.withAlpha(150),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    priorityLabel(priority),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.unfold_more_rounded,
-              color: cs.onSurfaceVariant.withAlpha(100),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategorySettingTile extends ConsumerWidget {
-  final List<int> selectedIds;
-  final VoidCallback onTap;
-  final Function(int) onRemove;
-  final ColorScheme cs;
-  final ThemeData theme;
-
-  const _CategorySettingTile({
-    required this.selectedIds,
-    required this.onTap,
-    required this.onRemove,
-    required this.cs,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final categoriesState = ref.watch(taskCategoryViewModelProvider);
-
-    return categoriesState.maybeWhen(
-      data: (categories) {
-        final selectedCats = categories
-            .where((c) => selectedIds.contains(c.id))
-            .toList();
-
-        return InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: (selectedIds.isNotEmpty ? cs.primary : cs.outline)
-                        .withAlpha(20),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.dashboard_customize_rounded,
-                    color: selectedIds.isNotEmpty ? cs.primary : cs.outline,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Categories",
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: cs.onSurfaceVariant.withAlpha(150),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (selectedCats.isEmpty)
-                        Text(
-                          "Add category",
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: cs.onSurface,
-                          ),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: selectedCats
-                                .map(
-                                  (c) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: cs.primary.withAlpha(20),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: cs.primary.withAlpha(40),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          c.icon,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          c.name,
-                                          style: theme.textTheme.labelSmall
-                                              ?.copyWith(
-                                                color: cs.primary,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        GestureDetector(
-                                          onTap: () => onRemove(c.id),
-                                          child: Icon(
-                                            Icons.close_rounded,
-                                            size: 14,
-                                            color: cs.primary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (selectedIds.length < 3)
-                  Icon(
-                    Icons.add_rounded,
-                    color: cs.onSurfaceVariant.withAlpha(100),
-                  )
-                else
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: cs.onSurfaceVariant.withAlpha(100),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-      orElse: () => const SizedBox.shrink(),
     );
   }
 }

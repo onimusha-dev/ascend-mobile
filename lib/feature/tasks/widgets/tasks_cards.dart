@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/data/db/tables/note_table.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/task_category_view_model.dart';
-import 'package:fuck_your_todos/feature/notes/widgets/task_edit_options.dart';
+import 'package:ascend/view_model/gamification_provider.dart';
+import 'package:ascend/data/db/tables/note_table.dart';
+import 'package:ascend/feature/tasks/view_models/task_category_view_model.dart';
+import 'package:ascend/feature/tasks/widgets/task_edit_options.dart';
+import 'package:ascend/core/utils/icon_utils.dart';
 import 'package:intl/intl.dart';
 
 class TasksCard extends ConsumerStatefulWidget {
@@ -13,7 +15,7 @@ class TasksCard extends ConsumerStatefulWidget {
     required this.description,
     required this.dueTime,
     required this.priority,
-    required this.tags,
+    required this.difficulty,
     required this.isCompleted,
     this.taskType,
   });
@@ -24,7 +26,7 @@ class TasksCard extends ConsumerStatefulWidget {
   final DateTime dueTime;
   final bool isCompleted;
   final Priority priority;
-  final List<String> tags;
+  final TaskDifficulty difficulty;
   final String? taskType;
 
   @override
@@ -93,9 +95,9 @@ class _TasksCardState extends ConsumerState<TasksCard>
         onLongPress: () =>
             showTaskOptions(context, ref, widget.id, widget.isCompleted),
         onTap: _toggleExpand,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480),
+          width: double.infinity,
           decoration: BoxDecoration(
             color: widget.isCompleted
                 ? colorScheme.surfaceContainerHighest.withAlpha(40)
@@ -125,12 +127,6 @@ class _TasksCardState extends ConsumerState<TasksCard>
                         decoration: BoxDecoration(
                           color: priorityColor,
                           shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: priorityColor.withAlpha(80),
-                              blurRadius: 6,
-                            ),
-                          ],
                         ),
                       ),
                     ],
@@ -164,10 +160,13 @@ class _TasksCardState extends ConsumerState<TasksCard>
                 ),
                 const SizedBox(height: 16),
 
-                // Meta Row: Category tag and Time (visible when collapsed or expanded)
-                Row(
+                // Meta Row: Category tags and Time (flowing horizontally)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    // Category Tags (Multiple)
+                    // Category Tags
                     categoriesState.maybeWhen(
                       data: (cats) {
                         if (widget.taskType == null ||
@@ -181,16 +180,16 @@ class _TasksCardState extends ConsumerState<TasksCard>
                             .whereType<int>()
                             .toList();
 
-                        final matches = cats
+                        final allMatches = cats
                             .where((c) => selectedIds.contains(c.id))
-                            .take(3)
                             .toList();
 
-                        if (matches.isEmpty) return const SizedBox.shrink();
+                        if (allMatches.isEmpty) return const SizedBox.shrink();
 
                         return Wrap(
                           spacing: 4,
-                          children: matches
+                          runSpacing: 4,
+                          children: allMatches
                               .map(
                                 (match) => Container(
                                   padding: const EdgeInsets.symmetric(
@@ -209,10 +208,11 @@ class _TasksCardState extends ConsumerState<TasksCard>
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        "${match.icon} ",
-                                        style: const TextStyle(fontSize: 12),
+                                      IconUtils.buildCategoryIcon(
+                                        match.icon,
+                                        size: 14,
                                       ),
+                                      const SizedBox(width: 4),
                                       Text(
                                         match.name,
                                         style: theme.textTheme.labelSmall
@@ -233,19 +233,30 @@ class _TasksCardState extends ConsumerState<TasksCard>
                       },
                       orElse: () => const SizedBox.shrink(),
                     ),
-                    const Spacer(),
-                    // Time - appealing style
-                    Icon(
-                      Icons.access_time_filled_rounded,
-                      size: 14,
-                      color: textColor.withAlpha(100),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('h:mm a').format(widget.dueTime),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: textColor.withAlpha(150),
-                        fontWeight: FontWeight.w600,
+
+                    // Time indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.access_time_filled_rounded,
+                            size: 14,
+                            color: textColor.withAlpha(100),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            DateFormat('h:mm a').format(widget.dueTime),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: textColor.withAlpha(150),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -302,6 +313,44 @@ class _TasksCardState extends ConsumerState<TasksCard>
                             ),
                           ],
                         ),
+                      if (ref.watch(gamificationProvider)) ...[
+                        const SizedBox(height: 8),
+                        // Difficulty Label explicitly inside expanded view
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest
+                                    .withAlpha(30),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons
+                                        .bolt_rounded, // Use bolt icon for difficulty
+                                    size: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    widget.difficulty.name.toUpperCase(),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: colorScheme.onSurfaceVariant,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

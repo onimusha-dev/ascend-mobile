@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fuck_your_todos/feature/notes/view_models/note_view_model.dart';
+import 'package:ascend/feature/tasks/view_models/note_view_model.dart';
 import 'package:intl/intl.dart';
 
 class AnalyticsScreen extends ConsumerStatefulWidget {

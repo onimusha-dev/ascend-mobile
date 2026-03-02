@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:ascend/core/constants/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:ascend/feature/settings_screen/widgets/common_setting_tile.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -10,8 +12,6 @@ class AboutScreen extends StatefulWidget {
 }
 
 class _AboutScreenState extends State<AboutScreen> {
-  bool _allowUnstableUpdates = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -54,55 +54,55 @@ class _AboutScreenState extends State<AboutScreen> {
                     children: [
                       _buildSectionTitle(context, "App Info"),
                       const SizedBox(height: 12),
-                      _AboutSettingTile(
+                      CommonSettingTile(
                         title: 'Version',
-                        subtitle: '1.0.0 (Release Candidate)',
+                        subtitle:
+                            '${AppConstants.appVersion}  (${AppConstants.versionName})',
                         icon: Icons.info_rounded,
                         color: Colors.blue,
                         onTap: _checkUpdates,
                       ),
-                      const SizedBox(height: 12),
-                      _AboutSettingTile(
-                        title: 'Beta Channel',
-                        subtitle: 'Receive early features & bugs',
-                        icon: Icons.bug_report_rounded,
-                        color: Colors.amber,
-                        trailing: Switch(
-                          value: _allowUnstableUpdates,
-                          activeThumbColor: cs.primary,
-                          onChanged: (v) =>
-                              setState(() => _allowUnstableUpdates = v),
-                        ),
-                      ),
 
+                      /// NOTE: Beta channel is not implemented yet.
+                      // const SizedBox(height: 12),
+                      // CommonSettingTile(
+                      //   title: 'Beta Channel',
+                      //   subtitle: 'Receive early features & bugs',
+                      //   icon: Icons.bug_report_rounded,
+                      //   color: Colors.amber,
+                      //   trailing: Switch(
+                      //     value: _allowUnstableUpdates,
+                      //     activeThumbColor: cs.primary,
+                      //     onChanged: (v) =>
+                      //         setState(() => _allowUnstableUpdates = v),
+                      //   ),
+                      // ),
                       const SizedBox(height: 32),
                       _buildSectionTitle(context, "Community & Source"),
                       const SizedBox(height: 12),
-                      _AboutSettingTile(
+                      CommonSettingTile(
                         title: 'Discord',
                         subtitle: 'Join our Discord community',
                         icon: Icons
                             .chat_bubble_rounded, // Fallback for standard Material Icons
                         color: const Color(0xFF5865F2),
-                        onTap: () => _launch('https://discord.gg/SqDNVhhdHV'),
+                        onTap: () => _launch(AppConstants.discordUrl),
                       ),
                       const SizedBox(height: 12),
-                      _AboutSettingTile(
+                      CommonSettingTile(
                         title: 'Source Code',
                         subtitle: 'Github repository',
                         icon: Icons.code_rounded,
                         color: Colors.green,
-                        onTap: () => _launch(
-                          'https://github.com/onimusha-dev/simple-task-manager-app',
-                        ),
+                        onTap: () => _launch(AppConstants.githubUrl),
                       ),
                       const SizedBox(height: 12),
-                      _AboutSettingTile(
+                      CommonSettingTile(
                         title: 'Telegram',
                         subtitle: 'Join the development community',
                         icon: Icons.chat_bubble_rounded,
                         color: Colors.lightBlue,
-                        onTap: () => _launch('https://t.me/+3sRfr-qGQ4BkZDRl'),
+                        onTap: () => _launch(AppConstants.telegramUrl),
                       ),
 
                       const Spacer(),
@@ -111,7 +111,7 @@ class _AboutScreenState extends State<AboutScreen> {
                         child: Column(
                           children: [
                             Text(
-                              "Made with ❤️ by 鬼 musha",
+                              "Made with ❤️ by ${AppConstants.author}",
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: cs.outline,
                                 fontWeight: FontWeight.w600,
@@ -119,7 +119,7 @@ class _AboutScreenState extends State<AboutScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "© 2026 fuck_your_todos",
+                              "© 2026 ${AppConstants.appName}",
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: cs.outline.withAlpha(150),
                               ),
@@ -180,83 +180,6 @@ class _AboutScreenState extends State<AboutScreen> {
           fontWeight: FontWeight.w900,
           color: Theme.of(context).colorScheme.outline,
           letterSpacing: 1.5,
-        ),
-      ),
-    );
-  }
-}
-
-class _AboutSettingTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _AboutSettingTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    this.trailing,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Material(
-      color: cs.surfaceContainerHighest.withAlpha(80),
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onSurface,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant.withAlpha(150),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ?trailing,
-              if (onTap != null && trailing == null)
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: cs.onSurfaceVariant.withAlpha(100),
-                ),
-            ],
-          ),
         ),
       ),
     );

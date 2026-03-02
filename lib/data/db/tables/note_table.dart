@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 
 enum Priority { none, low, medium, high }
 
+enum TaskDifficulty { easy, medium, hard }
+
 class NoteTable extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -21,4 +23,7 @@ class NoteTable extends Table {
       intEnum<Priority>().withDefault(const Constant(0))();
 
   TextColumn get taskType => text().nullable()();
+
+  IntColumn get difficulty =>
+      intEnum<TaskDifficulty>().withDefault(const Constant(0))();
 }

@@ -3,17 +3,32 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:fuck_your_todos/core/theme/theme_provider.dart';
-import 'package:fuck_your_todos/feature/error_screen/global_error_screen.dart';
-import 'package:fuck_your_todos/core/services/app_preferences.dart';
-import 'package:fuck_your_todos/feature/onboarding/onboarding_screen.dart';
+import 'package:ascend/core/theme/theme_provider.dart';
+import 'package:ascend/feature/error_screen/global_error_screen.dart';
+import 'package:ascend/core/services/app_preferences.dart';
+import 'package:ascend/core/services/analytics_service.dart';
+import 'package:ascend/feature/onboarding/onboarding_screen.dart';
+import 'package:ascend/main_app_screen.dart';
+import 'package:ascend/core/services/background_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferences.init();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  final bool onboardingCompleted =
+      AppPreferences.getPreferenceBool(AppPreferences.keyOnboardingCompleted) ??
+      false;
+
+  await BackgroundService.initialize();
+
+  // Analytics ping & crash reporting upload in background
+  AnalyticsService.initializeAndPing();
+
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top],
+  );
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.transparent,
@@ -26,11 +41,18 @@ void main() async {
     return GlobalErrorScreen(errorDetails: details);
   };
 
-  runApp(Phoenix(child: ProviderScope(child: MyApp())));
+  runApp(
+    Phoenix(
+      child: ProviderScope(
+        child: MyApp(onboardingCompleted: onboardingCompleted),
+      ),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+  final bool onboardingCompleted;
+  const MyApp({super.key, required this.onboardingCompleted});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,7 +83,9 @@ class MyApp extends ConsumerWidget {
           theme: buildTheme(lightScheme, Brightness.light, false),
           darkTheme: buildTheme(darkScheme, Brightness.dark, pureDark),
           themeMode: themeMode,
-          home: const OnboardingScreen(),
+          home: onboardingCompleted
+              ? const MainAppScreen()
+              : const OnboardingScreen(),
         );
       },
     );
