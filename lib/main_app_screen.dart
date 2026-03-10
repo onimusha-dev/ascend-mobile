@@ -12,6 +12,10 @@ import 'package:ascend/feature/settings_screen/settings_screen.dart';
 import 'package:ascend/view_model/gamification_provider.dart';
 import 'package:ascend/view_model/user_progress_view_model.dart';
 
+import 'package:ascend/feature/journal/journal_screen.dart';
+import 'package:ascend/feature/habit_tracker/habit_tracker_screen.dart';
+import 'package:ascend/feature/focus_mode/focus_mode_screen.dart';
+
 class MainAppScreen extends ConsumerStatefulWidget {
   final int initialIndex;
 
@@ -24,12 +28,17 @@ class MainAppScreen extends ConsumerStatefulWidget {
 class _MainAppScreenState extends ConsumerState<MainAppScreen> {
   DateTime? currentBackPressTime;
   late int currentIndex;
-  final List<Widget> pages = [const CalendarScreen(), const AnalyticsScreen()];
+  final List<Widget> pages = [
+    const CalendarScreen(),
+    const JournalScreen(),
+    const HabitTrackerScreen(),
+    const FocusModeScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    currentIndex = widget.initialIndex % 2; // Ensure valid index
+    currentIndex = widget.initialIndex % pages.length; // Ensure valid index
   }
 
   void _switchTab(int index) => setState(() => currentIndex = index);
@@ -71,15 +80,15 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         extendBody: true,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: currentIndex != 0
-              ? Text(
-                  'Analytics',
+          title: currentIndex == 0
+              ? null
+              : Text(
+                  _getPageTitle(currentIndex),
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                   ),
-                )
-              : null,
+                ),
           leading: currentIndex == 0
               ? Consumer(
                   builder: (context, ref, child) {
@@ -160,6 +169,28 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
+                    builder: (context) => const AnalyticsScreen(),
+                  ),
+                );
+              },
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withAlpha(100),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: cs.primary,
+                  size: 20,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
                     builder: (context) => const SettingsScreen(),
                   ),
                 );
@@ -180,7 +211,10 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
             const SizedBox(width: 8),
           ],
         ),
-        body: pages[currentIndex],
+        body: IndexedStack(
+          index: currentIndex,
+          children: pages,
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Container(
           height: 60,
@@ -219,29 +253,39 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
         bottomNavigationBar: BottomAppBar(
           padding: EdgeInsets.zero,
           notchMargin: 8,
-          color: cs.surface.withValues(
-            alpha: 0.95,
-          ), // slight transparency for true edge-to-edge look
+          color: cs.surface.withAlpha(242), // 0.95 alpha approx
           elevation: 0,
           shape: const CircularNotchedRectangle(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: SizedBox(
-              height: 60, // Content height
+              height: 60,
               child: Row(
                 children: [
-                  _buildTabItem(
+                   _buildTabItem(
                     index: 0,
                     icon: CupertinoIcons.calendar,
                     activeIcon: CupertinoIcons.calendar_today,
-                    label: 'Index',
+                    label: 'Timeline',
                   ),
-                  const SizedBox(width: 80), // Space for FAB
                   _buildTabItem(
                     index: 1,
-                    icon: CupertinoIcons.chart_bar,
-                    activeIcon: CupertinoIcons.chart_bar_fill,
-                    label: 'Analytics',
+                    icon: CupertinoIcons.book,
+                    activeIcon: CupertinoIcons.book_fill,
+                    label: 'Journal',
+                  ),
+                  const SizedBox(width: 70), // Center gap
+                  _buildTabItem(
+                    index: 2,
+                    icon: CupertinoIcons.checkmark_seal,
+                    activeIcon: CupertinoIcons.checkmark_seal_fill,
+                    label: 'Habits',
+                  ),
+                  _buildTabItem(
+                    index: 3,
+                    icon: CupertinoIcons.timer,
+                    activeIcon: CupertinoIcons.timer_fill,
+                    label: 'Focus',
                   ),
                 ],
               ),
@@ -252,7 +296,16 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
     );
   }
 
-  /// NOTE: widget for building bottom nav bar options
+  String _getPageTitle(int index) {
+    return switch (index) {
+      0 => 'Timeline',
+      1 => 'Journal',
+      2 => 'Habit Tracker',
+      3 => 'Focus Mode',
+      _ => '',
+    };
+  }
+
   Widget _buildTabItem({
     required int index,
     required IconData icon,
@@ -276,12 +329,12 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
           children: [
             TweenAnimationBuilder<double>(
               duration: const Duration(milliseconds: 200),
-              tween: Tween(begin: 0.8, end: isSelected ? 1.1 : 1.0),
+              tween: Tween(begin: 0.8, end: isSelected ? 1.0 : 0.9),
               builder: (context, value, child) => Transform.scale(
                 scale: value,
                 child: Icon(
                   isSelected ? activeIcon : icon,
-                  size: 26,
+                  size: 24,
                   color: color,
                 ),
               ),
@@ -292,8 +345,8 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: color,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                fontSize: 11,
-                letterSpacing: 0.2,
+                fontSize: 10,
+                letterSpacing: 0,
               ),
             ),
           ],
