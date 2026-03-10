@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/data/db/tables/note_table.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/data/db/tables/note_table.dart';
 
 part 'note_model.freezed.dart';
 
@@ -15,7 +15,8 @@ abstract class NoteModel with _$NoteModel {
     required DateTime updatedAt,
     required bool isCompleted,
     required Priority priority,
-    int? taskType,
+    required TaskDifficulty difficulty,
+    String? taskType,
   }) = _NoteModel;
 
   factory NoteModel.fromEntity(NoteTableData note) {
@@ -28,6 +29,7 @@ abstract class NoteModel with _$NoteModel {
       updatedAt: note.updatedAt,
       isCompleted: note.isCompleted,
       priority: note.priority,
+      difficulty: note.difficulty,
       taskType: note.taskType,
     );
   }

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NoteModel {
 
- int get id; String get title; String? get description; DateTime? get dueDate; DateTime get createdAt; DateTime get updatedAt; bool get isCompleted; Priority get priority; int? get taskType;
+ int get id; String get title; String? get description; DateTime? get dueDate; DateTime get createdAt; DateTime get updatedAt; bool get isCompleted; Priority get priority; TaskDifficulty get difficulty; String? get taskType;
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $NoteModelCopyWith<NoteModel> get copyWith => _$NoteModelCopyWithImpl<NoteModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.taskType, taskType) || other.taskType == taskType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.taskType, taskType) || other.taskType == taskType));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,dueDate,createdAt,updatedAt,isCompleted,priority,taskType);
+int get hashCode => Object.hash(runtimeType,id,title,description,dueDate,createdAt,updatedAt,isCompleted,priority,difficulty,taskType);
 
 @override
 String toString() {
-  return 'NoteModel(id: $id, title: $title, description: $description, dueDate: $dueDate, createdAt: $createdAt, updatedAt: $updatedAt, isCompleted: $isCompleted, priority: $priority, taskType: $taskType)';
+  return 'NoteModel(id: $id, title: $title, description: $description, dueDate: $dueDate, createdAt: $createdAt, updatedAt: $updatedAt, isCompleted: $isCompleted, priority: $priority, difficulty: $difficulty, taskType: $taskType)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $NoteModelCopyWith<$Res>  {
   factory $NoteModelCopyWith(NoteModel value, $Res Function(NoteModel) _then) = _$NoteModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, int? taskType
+ int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, TaskDifficulty difficulty, String? taskType
 });
 
 
@@ -62,7 +62,7 @@ class _$NoteModelCopyWithImpl<$Res>
 
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? dueDate = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isCompleted = null,Object? priority = null,Object? taskType = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? dueDate = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isCompleted = null,Object? priority = null,Object? difficulty = null,Object? taskType = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -72,8 +72,9 @@ as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignor
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
-as Priority,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
-as int?,
+as Priority,difficulty: null == difficulty ? _self.difficulty : difficulty // ignore: cast_nullable_to_non_nullable
+as TaskDifficulty,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  TaskDifficulty difficulty,  String? taskType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NoteModel() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
+return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.difficulty,_that.taskType);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.creat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  TaskDifficulty difficulty,  String? taskType)  $default,) {final _that = this;
 switch (_that) {
 case _NoteModel():
-return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
+return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.difficulty,_that.taskType);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.creat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  int? taskType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String? description,  DateTime? dueDate,  DateTime createdAt,  DateTime updatedAt,  bool isCompleted,  Priority priority,  TaskDifficulty difficulty,  String? taskType)?  $default,) {final _that = this;
 switch (_that) {
 case _NoteModel() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.taskType);case _:
+return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.createdAt,_that.updatedAt,_that.isCompleted,_that.priority,_that.difficulty,_that.taskType);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.id,_that.title,_that.description,_that.dueDate,_that.creat
 
 
 class _NoteModel implements NoteModel {
-   _NoteModel({this.id = 0, required this.title, required this.description, required this.dueDate, required this.createdAt, required this.updatedAt, required this.isCompleted, required this.priority, this.taskType});
+   _NoteModel({this.id = 0, required this.title, required this.description, required this.dueDate, required this.createdAt, required this.updatedAt, required this.isCompleted, required this.priority, required this.difficulty, this.taskType});
   
 
 @override@JsonKey() final  int id;
@@ -225,7 +226,8 @@ class _NoteModel implements NoteModel {
 @override final  DateTime updatedAt;
 @override final  bool isCompleted;
 @override final  Priority priority;
-@override final  int? taskType;
+@override final  TaskDifficulty difficulty;
+@override final  String? taskType;
 
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +239,16 @@ _$NoteModelCopyWith<_NoteModel> get copyWith => __$NoteModelCopyWithImpl<_NoteMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.taskType, taskType) || other.taskType == taskType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.taskType, taskType) || other.taskType == taskType));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,dueDate,createdAt,updatedAt,isCompleted,priority,taskType);
+int get hashCode => Object.hash(runtimeType,id,title,description,dueDate,createdAt,updatedAt,isCompleted,priority,difficulty,taskType);
 
 @override
 String toString() {
-  return 'NoteModel(id: $id, title: $title, description: $description, dueDate: $dueDate, createdAt: $createdAt, updatedAt: $updatedAt, isCompleted: $isCompleted, priority: $priority, taskType: $taskType)';
+  return 'NoteModel(id: $id, title: $title, description: $description, dueDate: $dueDate, createdAt: $createdAt, updatedAt: $updatedAt, isCompleted: $isCompleted, priority: $priority, difficulty: $difficulty, taskType: $taskType)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$NoteModelCopyWith<$Res> implements $NoteModelCopyWith<$Re
   factory _$NoteModelCopyWith(_NoteModel value, $Res Function(_NoteModel) _then) = __$NoteModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, int? taskType
+ int id, String title, String? description, DateTime? dueDate, DateTime createdAt, DateTime updatedAt, bool isCompleted, Priority priority, TaskDifficulty difficulty, String? taskType
 });
 
 
@@ -274,7 +276,7 @@ class __$NoteModelCopyWithImpl<$Res>
 
 /// Create a copy of NoteModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? dueDate = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isCompleted = null,Object? priority = null,Object? taskType = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? dueDate = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isCompleted = null,Object? priority = null,Object? difficulty = null,Object? taskType = freezed,}) {
   return _then(_NoteModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -284,8 +286,9 @@ as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignor
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
-as Priority,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
-as int?,
+as Priority,difficulty: null == difficulty ? _self.difficulty : difficulty // ignore: cast_nullable_to_non_nullable
+as TaskDifficulty,taskType: freezed == taskType ? _self.taskType : taskType // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

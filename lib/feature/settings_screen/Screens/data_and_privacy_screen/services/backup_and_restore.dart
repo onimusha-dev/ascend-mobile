@@ -3,9 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:fuck_your_todos/core/constants/constants.dart';
-import 'package:fuck_your_todos/core/services/app_preferences.dart';
-import 'package:fuck_your_todos/core/services/notification_service.dart';
+import 'package:ascend/core/constants/constants.dart';
+import 'package:ascend/core/services/app_preferences.dart';
+import 'package:ascend/core/services/notification_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -15,6 +15,7 @@ class BackupAndRestoreService {
   /// eg: '10 MB' or '500 KB' or 'Error calc' -> for errors
   Future<String> calculateDbSize() async {
     try {
+      await Future.delayed(const Duration(seconds: 3));
       final dir = await getApplicationSupportDirectory();
       final dbFile = File(p.join(dir.path, DatabaseConstants.fileName));
 
@@ -37,9 +38,19 @@ class BackupAndRestoreService {
       final mb = totalBytes / (1024 * 1024);
 
       if (totalBytes == 0) return '0 KB';
-      if (mb < 1.0) return '${(totalBytes / 1024).toStringAsFixed(2)} KB';
-      return '${mb.toStringAsFixed(2)} MB';
+      if (mb < 1.0) {
+        final kb = totalBytes / 1024;
+        return '${kb == kb.roundToDouble() ? kb.toInt() : kb.toStringAsFixed(2)} KB';
+      }
+      return '${mb == mb.roundToDouble() ? mb.toInt() : mb.toStringAsFixed(2)} MB';
     } catch (e) {
+      try {
+        NotificationService().showInstantBackupAndRestoreNotification(
+          id: 2,
+          title: 'Storage Error',
+          body: 'Failed to calculate database size',
+        );
+      } catch (_) {}
       return 'Error calc';
     }
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ascend/feature/settings_screen/Screens/account_screen/widgets/user_profile_card.dart';
+import 'package:ascend/feature/settings_screen/widgets/common_setting_tile.dart';
+import 'package:ascend/core/services/auth_service.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -8,231 +11,276 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  bool _onlineSync = false;
-
-  void _showComingSoonToast() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Premium features coming soon!',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-        duration: const Duration(seconds: 3),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-      ),
-    );
-  }
+  bool _isLoggedIn = false;
+  Map<String, dynamic>? _userProfile;
+  bool _isLoading = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _UserProfileCard(),
-              const SizedBox(height: 32),
-              const _SectionHeader(title: 'Cloud Synchronization'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Online Sync',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Automatically backup and sync your notes across devices',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Switch(
-                  value: _onlineSync,
-                  onChanged: (value) {
-                    setState(() {
-                      _onlineSync = value;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-              const _SectionHeader(title: 'Data Management'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Get all remotely stored data',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Request a complete export of your cloud footprint',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.cloud_download_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                onTap: () {
-                  // TODO: Implement data export
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Clear all remotely stored data',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Wipe your existing footprint from the cloud servers',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.cloud_off_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                onTap: () {
-                  // TODO: Implement cloud data wipe
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Delete account',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-                subtitle: Text(
-                  'Permanently erase your account and all associated data',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.error.withValues(alpha: 0.8),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.delete_forever_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                onTap: () {
-                  // TODO: Implement account deletion
-                },
-              ),
-              const SizedBox(height: 24),
-              const _SectionHeader(title: 'Plans & Upgrades'),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(
-                  'Get Premium',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                subtitle: Text(
-                  'Unlock unlimited themes, robust backups, and priority support',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                onTap: _showComingSoonToast,
-              ),
-              const SizedBox(height: 100),
-            ],
-          ),
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _loadAuthState();
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
+  Future<void> _loadAuthState({bool showSuccessToast = false}) async {
+    setState(() => _isLoading = true);
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-}
+    final loggedIn = await AuthService.isLoggedIn();
+    Map<String, dynamic>? profile;
 
-class _UserProfileCard extends StatelessWidget {
-  const _UserProfileCard();
+    if (loggedIn) {
+      final result = await AuthService.getProfile();
+      if (result['success'] == true) {
+        profile = result['user'] as Map<String, dynamic>?;
+      }
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 36,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.person_rounded,
-                size: 36,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _userProfile = profile;
+        _isLoading = false;
+      });
+
+      if (showSuccessToast && loggedIn) {
+        // Small delay so the snackbar appears after the screen has rebuilt
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
                 children: [
-                  Text(
-                    'Demo Account',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 18,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(width: 8),
                   Text(
-                    'demo@example.com',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    profile != null
+                        ? 'Welcome, ${profile['email']}!'
+                        : 'Logged in successfully!',
                   ),
                 ],
               ),
+              behavior: SnackBarBehavior.floating,
+              showCloseIcon: true,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
-          ],
-        ),
+          );
+        }
+      }
+    }
+  }
+
+  String? _formatMemberSince(dynamic rawDate) {
+    if (rawDate == null) return null;
+    try {
+      final date = DateTime.parse(rawDate.toString());
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${months[date.month - 1]} ${date.year}';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _showComingSoon(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature coming soon!'),
+        behavior: SnackBarBehavior.floating,
+        showCloseIcon: true,
       ),
     );
   }
+
+  Future<void> _handleLogout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Log Out',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'Are you sure? Your local data stays safe on this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Log Out',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await AuthService.logout();
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+          _userProfile = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logged out successfully.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Account',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: cs.primary,
+            size: 20,
+          ),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UserProfileCard(
+                      cs: cs,
+                      theme: theme,
+                      isLoggedIn: _isLoggedIn,
+                      userEmail: _userProfile?['email']?.toString(),
+                      memberSince: _formatMemberSince(
+                        _userProfile?['createdAt'],
+                      ),
+                      onAuthChanged: () =>
+                          _loadAuthState(showSuccessToast: true),
+                    ),
+
+                    if (_isLoggedIn) ...[
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'Cloud Synchronization'),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'Cloud Backup',
+                        subtitle: 'Upload your journal data to the cloud',
+                        icon: Icons.cloud_upload_rounded,
+                        color: Colors.blue,
+                        onTap: () => _showComingSoon('Cloud Backup'),
+                      ),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'Restore from Cloud',
+                        subtitle: 'Download and restore a backup',
+                        icon: Icons.cloud_download_rounded,
+                        color: Colors.teal,
+                        onTap: () => _showComingSoon('Cloud Restore'),
+                      ),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'View Backups',
+                        subtitle: 'See all your saved cloud snapshots',
+                        icon: Icons.history_rounded,
+                        color: Colors.indigo,
+                        onTap: () => _showComingSoon('Backup history'),
+                      ),
+
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'Plans & Upgrades'),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'Get Premium',
+                        subtitle: 'Unlock themes, unlimited backups & more',
+                        icon: Icons.workspace_premium_rounded,
+                        color: Colors.purple,
+                        onTap: () => _showComingSoon('Premium'),
+                      ),
+
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'Session'),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'Log Out',
+                        subtitle: 'Sign out from this device',
+                        icon: Icons.logout_rounded,
+                        color: Colors.orange,
+                        onTap: _handleLogout,
+                      ),
+                      const SizedBox(height: 12),
+                      CommonSettingTile(
+                        title: 'Delete Account',
+                        subtitle: 'Permanently erase your account & data',
+                        icon: Icons.delete_forever_rounded,
+                        color: cs.error,
+                        onTap: () => _showComingSoon('Account deletion'),
+                      ),
+                    ],
+
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+Widget _buildSectionTitle(BuildContext context, String title) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 4),
+    child: Text(
+      title.toUpperCase(),
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        fontWeight: FontWeight.w900,
+        color: Theme.of(context).colorScheme.outline,
+        letterSpacing: 1.5,
+      ),
+    ),
+  );
 }

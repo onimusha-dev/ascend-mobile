@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
-import 'package:fuck_your_todos/core/utils/input_formatter.dart';
-import 'package:fuck_your_todos/data/db/dao/note_dao.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/data/db/tables/note_table.dart';
-import 'package:fuck_your_todos/domain/models/note_model.dart';
+import 'package:ascend/core/utils/input_formatter.dart';
+import 'package:ascend/data/db/dao/note_dao.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/data/db/tables/note_table.dart';
+import 'package:ascend/domain/models/note_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'note_repository.g.dart';
@@ -47,7 +47,8 @@ class NoteRepository {
     String? description,
     String? dueDate,
     Priority? priority,
-    int? taskType,
+    TaskDifficulty difficulty,
+    String? taskType,
   ) async {
     try {
       final note = NoteTableCompanion(
@@ -59,6 +60,7 @@ class NoteRepository {
             ? Value(DateTime.parse(dueDate))
             : const Value.absent(),
         priority: priority != null ? Value(priority) : const Value.absent(),
+        difficulty: Value(difficulty),
         taskType: taskType != null ? Value(taskType) : const Value.absent(),
         createdAt: Value(DateTime.now()),
         updatedAt: Value(DateTime.now()),
@@ -86,12 +88,14 @@ class NoteRepository {
     String? title,
     String? description,
     String? dueDate,
-    int? taskType,
+    TaskDifficulty? difficulty,
+    String? taskType,
   ) async {
     try {
       if (title == null &&
           description == null &&
           dueDate == null &&
+          difficulty == null &&
           taskType == null) {
         throw Exception('No fields to update');
       }
@@ -105,6 +109,9 @@ class NoteRepository {
             : const Value.absent(),
         dueDate: dueDate != null
             ? Value(DateTime.parse(dueDate))
+            : const Value.absent(),
+        difficulty: difficulty != null
+            ? Value(difficulty)
             : const Value.absent(),
         taskType: taskType != null ? Value(taskType) : const Value.absent(),
         updatedAt: Value(DateTime.now()),

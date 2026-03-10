@@ -1,3 +1,5 @@
+import 'package:ascend/core/constants/constants.dart';
+import 'package:ascend/core/services/analytics_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -7,10 +9,17 @@ class GlobalErrorScreen extends StatelessWidget {
 
   const GlobalErrorScreen({super.key, required this.errorDetails});
 
+  void _logToBackend() {
+    AnalyticsService.logError(
+      errorDetails.exceptionAsString(),
+      errorDetails.stack?.toString() ?? 'No stack trace',
+    );
+  }
+
   Future<void> _reportError() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'musaddikulislam007@gmail.com',
+      path: AppConstants.email,
       queryParameters: {
         'subject': 'App Bug Report',
         'body':
@@ -29,6 +38,9 @@ class GlobalErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Log silently in the background when the screen is shown
+    _logToBackend();
+
     // We return a completely separated MaterialApp here so that the Error Screen
     // looks correct even if the inherited Theme or Directionality is broken by the crash!
     return MaterialApp(

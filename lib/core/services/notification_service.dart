@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:fuck_your_todos/main.dart';
+import 'package:ascend/main.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -111,37 +111,6 @@ class NotificationService {
       body: body,
       notificationDetails: platformChannelSpecifics,
       payload: 'restart_app',
-    );
-  }
-
-  /// NOTE: remove this later if not needed a test
-  Future<void> showTestNotification() async {
-    if (!_isInitialized) {
-      await init();
-    }
-
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-          'test_channel_id',
-          'Test Notifications',
-          channelDescription: 'Channel for test notifications',
-          importance: Importance.max,
-          priority: Priority.high,
-        );
-
-    const DarwinNotificationDetails iosNotificationDetails =
-        DarwinNotificationDetails();
-
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iosNotificationDetails,
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      id: 0,
-      title: 'Test Notification',
-      body: 'This is a test notification from the app.',
-      notificationDetails: platformChannelSpecifics,
     );
   }
 }

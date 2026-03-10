@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fuck_your_todos/data/db/app_database.dart';
-import 'package:fuck_your_todos/data/db/tables/task_categories_table.dart';
+import 'package:ascend/data/db/app_database.dart';
+import 'package:ascend/data/db/tables/task_categories_table.dart';
 
 part 'task_category_dao.g.dart';
 
@@ -23,4 +23,6 @@ class TaskCategoryDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> deleteCategory(int id) =>
       (delete(taskCategoriesTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deleteAllCategories() => delete(taskCategoriesTable).go();
 }

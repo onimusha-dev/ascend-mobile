@@ -1,66 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class WeekCarouselWidget extends ConsumerStatefulWidget {
   const WeekCarouselWidget({
     super.key,
     required this.selectedDate,
     required this.onDateSelected,
-    this.weekStartDate,
-    this.selectedColor,
-    this.unselectedColor,
-    this.textColor,
-    this.selectedTextColor,
   });
 
-  /// Currently selected date
   final DateTime selectedDate;
-
-  /// Callback when a date is selected
   final ValueChanged<DateTime> onDateSelected;
-
-  /// Starting date of the week to display (defaults to current week's start)
-  final DateTime? weekStartDate;
-
-  /// Background color for selected date
-  final Color? selectedColor;
-
-  /// Background color for unselected dates
-  final Color? unselectedColor;
-
-  /// Text color for unselected dates
-  final Color? textColor;
-
-  /// Text color for selected date
-  final Color? selectedTextColor;
 
   @override
   ConsumerState<WeekCarouselWidget> createState() => _WeekCarouselWidgetState();
 }
 
 class _WeekCarouselWidgetState extends ConsumerState<WeekCarouselWidget> {
-  late DateTime _initialWeekStart;
   late PageController _pageController;
-  int _currentPageIndex = 100;
-
-  static const List<String> _dayNames = [
-    'SUN',
-    'MON',
-    'TUE',
-    'WED',
-    'THU',
-    'FRI',
-    'SAT',
-  ];
+  late DateTime _initialWeekStart;
+  int _currentPageIndex = 1000;
 
   @override
   void initState() {
     super.initState();
-    _initialWeekStart =
-        widget.weekStartDate ?? _getWeekStart(widget.selectedDate);
-    _pageController = PageController(
-      initialPage: 100,
-    ); // Start at middle for infinite scroll
+    _initialWeekStart = _getWeekStart(DateTime.now());
+    _pageController = PageController(initialPage: _currentPageIndex);
+    _updatePageToDate(widget.selectedDate);
+  }
+
+  void _updatePageToDate(DateTime date) {
+    final targetWeekStart = _getWeekStart(date);
+    final weekDiff = targetWeekStart.difference(_initialWeekStart).inDays ~/ 7;
+    _currentPageIndex = 1000 + weekDiff;
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(_currentPageIndex);
+    }
   }
 
   @override
@@ -70,48 +46,13 @@ class _WeekCarouselWidgetState extends ConsumerState<WeekCarouselWidget> {
       final oldWeekStart = _getWeekStart(oldWidget.selectedDate);
       final newWeekStart = _getWeekStart(widget.selectedDate);
       if (!_isSameDay(oldWeekStart, newWeekStart)) {
-        // Find how many weeks difference from _initialWeekStart to jump
-        final diff = newWeekStart.difference(_initialWeekStart).inDays ~/ 7;
-        final newIndex = 100 + diff;
-        if (newIndex != _currentPageIndex) {
-          _currentPageIndex = newIndex;
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(newIndex);
-          }
-        }
+        _updatePageToDate(widget.selectedDate);
       }
     }
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  /// Returns the Sunday of the week containing the given date
-  /// Dart's weekday: Monday = 1, Sunday = 7
   DateTime _getWeekStart(DateTime date) {
-    // If Sunday (weekday == 7), subtract 0 days
-    // If Monday (weekday == 1), subtract 1 day
-    // If Saturday (weekday == 6), subtract 6 days
-    final daysToSubtract = date.weekday == 7 ? 0 : date.weekday;
-    return DateTime(date.year, date.month, date.day - daysToSubtract);
-  }
-
-  /// Get the week starting from an offset (for infinite scrolling)
-  DateTime _getWeekFromOffset(int offset) {
-    return _initialWeekStart.add(Duration(days: (offset - 100) * 7));
-  }
-
-  /// Get current displayed week start based on page index
-  DateTime _getCurrentWeekStart() {
-    return _getWeekFromOffset(_currentPageIndex);
-  }
-
-  /// Get middle of current displayed week (Wednesday) to determine the logical month
-  DateTime _getCurrentMiddleOfWeek() {
-    return _getCurrentWeekStart().add(const Duration(days: 3));
+    return DateTime(date.year, date.month, date.day - (date.weekday % 7));
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -121,170 +62,133 @@ class _WeekCarouselWidgetState extends ConsumerState<WeekCarouselWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selectedColor = widget.selectedColor ?? theme.colorScheme.primary;
-    final unselectedColor = widget.unselectedColor ?? Colors.transparent;
-    final textColor = widget.textColor ?? theme.colorScheme.onSurface;
-    final selectedTextColor =
-        widget.selectedTextColor ?? theme.colorScheme.onPrimary;
+    final colorScheme = theme.colorScheme;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Month/Year Header with navigation
-        _buildHeader(),
-        const SizedBox(height: 8),
-        // Week Days Carousel
-        SizedBox(
-          height: 80,
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPageIndex = index;
-              });
-            },
-            itemBuilder: (context, pageIndex) {
-              final weekStart = _getWeekFromOffset(pageIndex);
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(7, (dayIndex) {
-                  final date = weekStart.add(Duration(days: dayIndex));
-                  final isSelected = _isSameDay(date, widget.selectedDate);
-                  final isToday = _isSameDay(date, DateTime.now());
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarColor: colorScheme.surface,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 90,
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) =>
+                  setState(() => _currentPageIndex = index),
+              itemBuilder: (context, pageIndex) {
+                final weekStart = _initialWeekStart.add(
+                  Duration(days: (pageIndex - 1000) * 7),
+                );
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(7, (i) {
+                    final date = weekStart.add(Duration(days: i));
+                    final isSelected = _isSameDay(date, widget.selectedDate);
+                    final isToday = _isSameDay(date, DateTime.now());
 
-                  return GestureDetector(
-                    onTap: () => widget.onDateSelected(date),
-                    child: _buildDayItem(
-                      dayName: _dayNames[dayIndex],
-                      dayNumber: date.day,
+                    return _DayItem(
+                      date: date,
                       isSelected: isSelected,
                       isToday: isToday,
-                      selectedColor: selectedColor,
-                      unselectedColor: unselectedColor,
-                      textColor: textColor,
-                      selectedTextColor: selectedTextColor,
-                    ),
-                  );
-                }),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    final currentWeekMiddle = _getCurrentMiddleOfWeek();
-    final monthNames = [
-      'JANUARY',
-      'FEBRUARY',
-      'MARCH',
-      'APRIL',
-      'MAY',
-      'JUNE',
-      'JULY',
-      'AUGUST',
-      'SEPTEMBER',
-      'OCTOBER',
-      'NOVEMBER',
-      'DECEMBER',
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: () {
-              _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Column(
-            children: [
-              Text(
-                monthNames[currentWeekMiddle.month - 1],
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.5,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              Text(
-                '${currentWeekMiddle.year}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            onPressed: () {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.chevron_right),
+                      onTap: () => widget.onDateSelected(date),
+                    );
+                  }),
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDayItem({
-    required String dayName,
-    required int dayNumber,
-    required bool isSelected,
-    required bool isToday,
-    required Color selectedColor,
-    required Color unselectedColor,
-    required Color textColor,
-    required Color selectedTextColor,
-  }) {
-    final isSaturday = dayName == 'SAT';
-    final isSunday = dayName == 'SUN';
+class _DayItem extends StatelessWidget {
+  final DateTime date;
+  final bool isSelected;
+  final bool isToday;
+  final VoidCallback onTap;
 
-    Color dayTextColor = textColor;
-    if (isSaturday) {
-      dayTextColor = Theme.of(context).colorScheme.secondary;
-    } else if (isSunday) {
-      dayTextColor = Theme.of(context).colorScheme.error;
-    }
+  const _DayItem({
+    required this.date,
+    required this.isSelected,
+    required this.isToday,
+    required this.onTap,
+  });
 
-    return Container(
-      width: 44,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? selectedColor : unselectedColor,
-        borderRadius: BorderRadius.circular(12),
-        border: isToday && !isSelected
-            ? Border.all(color: selectedColor, width: 1.5)
-            : null,
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dayLabel = DateFormat('E').format(date).toUpperCase()[0];
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            dayName,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: isSelected ? selectedTextColor : dayTextColor,
+            dayLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant.withAlpha(120),
+              fontSize: 10,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '$dayNumber',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isSelected ? selectedTextColor : textColor,
+          const SizedBox(height: 12),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? colorScheme.primary
+                  : (isToday
+                        ? colorScheme.primary.withAlpha(20)
+                        : Colors.transparent),
+              shape: BoxShape.circle,
+              border: isToday && !isSelected
+                  ? Border.all(
+                      color: colorScheme.primary.withAlpha(100),
+                      width: 1,
+                    )
+                  : null,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${date.day}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                color: isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurface,
+                fontSize: 15,
+              ),
             ),
           ),
+          const SizedBox(height: 6),
+          if (isSelected)
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+            )
+          else
+            const SizedBox(height: 4),
         ],
       ),
     );

@@ -13,8 +13,8 @@ class AppThemePreset {
 }
 
 class AppThemes {
-  static const catppuccin = AppThemePreset(
-    name: 'Catppuccin',
+  static const violet = AppThemePreset(
+    name: 'Violet',
     seedColor: Colors.deepPurple,
   );
 
@@ -29,15 +29,5 @@ class AppThemes {
     seedColor: Color(0xFF00BFA6),
   );
 
-  static const asuka = AppThemePreset(
-    name: 'Asuka',
-    seedColor: Color(0xFFFF5A36),
-  );
-
-  static const rikka = AppThemePreset(
-    name: 'Rikka',
-    seedColor: Color(0xFF3D5AFE),
-  );
-
-  static const presets = [catppuccin, dynamic, miku, asuka, rikka];
+  static const presets = [miku, dynamic, violet];
 }
