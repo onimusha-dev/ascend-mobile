@@ -109,6 +109,15 @@ class _OnboardingThemePreviewCard extends ConsumerWidget {
                       : previewCs.outlineVariant,
                   width: isSelected ? 2 : 0.5,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: previewCs.primary.withAlpha(51),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: _PreviewContent(previewCs: previewCs, preset: preset),
             ),

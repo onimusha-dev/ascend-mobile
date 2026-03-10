@@ -81,8 +81,8 @@ lib/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ascend.git
-   cd ascend
+   git clone https://github.com/onimusha-dev/ascend-mobile.git
+   cd ascend-mobile
    ```
 
 2. **Install dependencies**

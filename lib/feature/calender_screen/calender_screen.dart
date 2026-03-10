@@ -78,7 +78,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 alignment: Alignment.topCenter,
                 children: [
                   ...previousChildren,
-                  ?currentChild,
+                  if (currentChild != null) currentChild,
                 ],
               );
             },
@@ -143,6 +143,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ],
                     ),
                   ),
+          ),
           ),
         ),
       ],
